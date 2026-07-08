@@ -1,0 +1,34 @@
+[
+  {
+    "id": "charizard-base-4",
+    "name": "Charizard",
+    "set": "Base Set",
+    "price": 350.0,
+    "currency": "SGD",
+    "status": "available",
+    "image": "/cards/charizard-base-4.jpg",
+    "description": "Holo, near mint. Card #4/102.",
+    "addedAt": "2026-07-01"
+  },
+  {
+    "id": "blastoise-base-2",
+    "name": "Blastoise",
+    "set": "Base Set",
+    "price": 180.0,
+    "currency": "SGD",
+    "status": "available",
+    "image": "/cards/blastoise-base-2.jpg",
+    "description": "Holo, lightly played. Card #2/102.",
+    "addedAt": "2026-06-25"
+  },
+  {
+    "id": "pikachu-vmax-188",
+    "name": "Pikachu VMAX",
+    "set": "Vivid Voltage",
+    "price": 45.0,
+    "currency": "SGD",
+    "status": "sold",
+    "image": "/cards/pikachu-vmax-188.jpg",
+    "addedAt": "2026-06-20"
+  }
+]
