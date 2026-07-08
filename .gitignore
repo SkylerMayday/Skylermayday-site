@@ -29,4 +29,5 @@ next-env.d.ts
 
 # internal pipeline/session notes — not part of the app
 .pipeline/
+.pipeline-*/
 .claude/

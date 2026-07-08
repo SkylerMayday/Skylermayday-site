@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { env, hasResendEnv, hasDiscordEnv } from "@/lib/env";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -80,6 +81,34 @@ async function sendContactEmail(data: ValidatedContact): Promise<boolean> {
   }
 }
 
+/**
+ * Vercel populates `x-forwarded-for` on serverless requests; the client IP
+ * is the first entry in that comma-separated list (Vercel prepends the real
+ * client IP; downstream proxies append). Vercel does not expose `request.ip`
+ * on the standard `Request` in a route handler, and `x-real-ip` is also set
+ * by Vercel as a single value — use it as a fallback.
+ *
+ * Note on spoofability: `x-forwarded-for` is client-settable in general,
+ * but on Vercel the platform overwrites/prepends the true client IP, so
+ * trusting the first entry is correct for this deployment target. We do
+ * not attempt to defend against a caller who bypasses Vercel's edge — not
+ * reachable for a Vercel-hosted site.
+ */
+function getClientIp(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    // First hop is the real client IP on Vercel; trim whitespace.
+    const first = forwarded.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  const real = request.headers.get("x-real-ip");
+  if (real) return real.trim();
+  // Last resort: a single shared bucket. Fail toward limiting (shared bucket)
+  // rather than failing open per-request, since a missing IP on Vercel is
+  // abnormal and we'd rather rate-limit an anomaly than let it bypass.
+  return "unknown";
+}
+
 async function fireDiscordWebhook(data: ValidatedContact): Promise<boolean> {
   if (!hasDiscordEnv()) {
     console.warn("[contact] Discord webhook env not configured; skipping.");
@@ -144,9 +173,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "validation", fields: errors }, { status: 400 });
   }
 
-  // P1: rate-limit here (see lib/cache.ts — Phase 1 relies on client-side
-  // disabling the submit button + normal traffic volume; no server-side
-  // limiter yet).
+  const ip = getClientIp(request);
+  const rate = checkRateLimit(ip);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "rate_limited",
+        retryAfterSeconds: rate.retryAfterSeconds,
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rate.retryAfterSeconds),
+          "RateLimit-Limit": String(rate.limit),
+          "RateLimit-Remaining": String(rate.remaining),
+          "RateLimit-Reset": String(Math.ceil((rate.resetAtMs - Date.now()) / 1000)),
+        },
+      }
+    );
+  }
 
   // Both legs attempted regardless of the other's outcome (spec §7 step 4).
   const [emailSent, webhookSent] = await Promise.all([
