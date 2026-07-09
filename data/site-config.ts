@@ -18,7 +18,7 @@ export interface ScheduleRow {
 }
 
 export const siteConfig = {
-  brandName: "Skyler Mayday",
+  brandName: "SkylerMayday",
   tagline: "Streamer, creator, and Pokémon TCG collector.", // [VERIFY] placeholder — Skyler to confirm brand line
   heroBlurb:
     "Catching clips, chasing Pokédex completion, and building things in between streams.", // placeholder

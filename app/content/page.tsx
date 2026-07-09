@@ -5,6 +5,7 @@ import { hasTwitchEnv, hasYouTubeEnv } from "@/lib/env";
 import type { ContentItem } from "@/lib/content-types";
 import PlatformFilter, { type SourceFailures } from "@/components/content/PlatformFilter";
 import TikTokEmbeds from "@/components/content/TikTokEmbeds";
+import InstagramEmbeds from "@/components/content/InstagramEmbeds";
 import { siteConfig } from "@/data/site-config";
 
 export const revalidate = 1800; // 30 min
@@ -64,6 +65,7 @@ export default async function ContentPage() {
         items={items}
         sourceFailures={sourceFailures}
         tiktokSlot={<TikTokEmbeds />}
+        instagramSlot={<InstagramEmbeds />}
       />
     </div>
   );

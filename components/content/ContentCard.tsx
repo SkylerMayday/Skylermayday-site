@@ -11,6 +11,7 @@ const PLATFORM_LABELS: Record<ContentItem["platform"], string> = {
   "twitch-vod": "Twitch VOD",
   youtube: "YouTube",
   tiktok: "TikTok",
+  instagram: "Instagram",
 };
 
 function formatViewCount(count: number): string {

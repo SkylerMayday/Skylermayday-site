@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { env } from "@/lib/env";
 import { siteConfig } from "@/data/site-config";
+import { fetchBotStatus } from "@/lib/discord";
 
 export const metadata: Metadata = {
   title: `Tools — ${siteConfig.brandName}`,
 };
 
-export default function ToolsPage() {
+export default async function ToolsPage() {
   const streamAnalyserUrl = env.STREAM_ANALYSER_URL;
+  const botStatus = await fetchBotStatus();
 
   return (
     <div className="flex flex-col gap-8 py-10">
@@ -33,15 +34,40 @@ export default function ToolsPage() {
           </div>
         )}
 
-        <Link
-          href="/ptcg-binders"
-          className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-6 transition hover:shadow-md dark:border-neutral-800"
-        >
-          <h2 className="text-lg font-semibold">Pokédex Binder</h2>
+        {/* Discord bot live-status card — the SkylerMayday Discord bot, live in my server. */}
+        <div className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
+          <div className="flex items-center gap-3">
+            {botStatus.online && botStatus.avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={botStatus.avatarUrl}
+                alt="SkylerMayday Discord bot avatar"
+                width={40}
+                height={40}
+                className="rounded-full"
+              />
+            ) : (
+              <div className="h-10 w-10 rounded-full bg-neutral-200 dark:bg-neutral-700" />
+            )}
+            <h2 className="text-lg font-semibold">SkylerMayday Discord Bot</h2>
+          </div>
+          {botStatus.unavailable ? (
+            <p className="text-sm text-neutral-400">Status unavailable right now.</p>
+          ) : (
+            <p className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+              <span
+                className={`inline-block h-2.5 w-2.5 rounded-full ${
+                  botStatus.online ? "bg-green-500" : "bg-neutral-400"
+                }`}
+                aria-hidden="true"
+              />
+              {botStatus.online ? "Online" : "Offline"}
+            </p>
+          )}
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            Track Pokémon TCG binder completion.
+            The SkylerMayday Discord bot, live in my server.
           </p>
-        </Link>
+        </div>
       </div>
     </div>
   );

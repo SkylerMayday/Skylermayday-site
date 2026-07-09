@@ -6,7 +6,7 @@ import ContentGrid from "./ContentGrid";
 import ErrorState from "@/components/ui/ErrorState";
 import EmptyState from "@/components/ui/EmptyState";
 
-type FilterValue = "all" | "twitch" | "youtube" | "tiktok";
+type FilterValue = "twitch" | "youtube" | "tiktok" | "instagram";
 
 interface FilterOption {
   value: FilterValue;
@@ -15,10 +15,10 @@ interface FilterOption {
 }
 
 const FILTER_OPTIONS: FilterOption[] = [
-  { value: "all", label: "All", platforms: ["twitch-clip", "twitch-vod", "youtube", "tiktok"] },
   { value: "twitch", label: "Twitch", platforms: ["twitch-clip", "twitch-vod"] },
   { value: "youtube", label: "YouTube", platforms: ["youtube"] },
   { value: "tiktok", label: "TikTok", platforms: ["tiktok"] },
+  { value: "instagram", label: "Instagram", platforms: [] },
 ];
 
 export interface SourceFailures {
@@ -30,14 +30,15 @@ interface PlatformFilterProps {
   items: ContentItem[];
   sourceFailures: SourceFailures;
   tiktokSlot: React.ReactNode;
+  instagramSlot: React.ReactNode;
 }
 
 /**
  * Client-side filter over already-fetched props. No re-fetch, no secrets
  * client-side — items were resolved server-side in app/content/page.tsx.
  */
-export default function PlatformFilter({ items, sourceFailures, tiktokSlot }: PlatformFilterProps) {
-  const [active, setActive] = useState<FilterValue>("all");
+export default function PlatformFilter({ items, sourceFailures, tiktokSlot, instagramSlot }: PlatformFilterProps) {
+  const [active, setActive] = useState<FilterValue>("twitch");
 
   const activeOption = useMemo(
     () => FILTER_OPTIONS.find((option) => option.value === active) ?? FILTER_OPTIONS[0],
@@ -79,6 +80,8 @@ export default function PlatformFilter({ items, sourceFailures, tiktokSlot }: Pl
 
       {active === "tiktok" ? (
         tiktokSlot
+      ) : active === "instagram" ? (
+        instagramSlot
       ) : scopedError ? (
         <ErrorState message={scopedError} />
       ) : filteredItems.length === 0 ? (
@@ -86,8 +89,6 @@ export default function PlatformFilter({ items, sourceFailures, tiktokSlot }: Pl
       ) : (
         <ContentGrid items={filteredItems} />
       )}
-
-      {active === "all" && <div className="mt-2">{tiktokSlot}</div>}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-export type Platform = "twitch-clip" | "twitch-vod" | "youtube" | "tiktok";
+export type Platform = "twitch-clip" | "twitch-vod" | "youtube" | "tiktok" | "instagram";
 
 export interface ContentItem {
   id: string; // stable per-platform id
