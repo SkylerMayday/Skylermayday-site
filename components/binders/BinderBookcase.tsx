@@ -7,20 +7,6 @@ interface BinderBookcaseProps {
   binders: Binder[];
 }
 
-/** Largest possible per-row book count — rows are chunked to this size in
- * JSX (SSR-safe, no JS breakpoint reads) and CSS `flex-wrap` + responsive
- * `flex-basis` on each spine handles how many actually fit per visual row
- * at each breakpoint (design-brief.md v2 §5 C1). */
-const SPINES_PER_ROW = 5;
-
-function chunk<T>(items: T[], size: number): T[][] {
-  const rows: T[][] = [];
-  for (let i = 0; i < items.length; i += size) {
-    rows.push(items.slice(i, i + size));
-  }
-  return rows;
-}
-
 /**
  * Grid designed for N section-spines — was originally one spine per binder,
  * now flattened to one spine per section (a strict superset of the old
@@ -28,13 +14,23 @@ function chunk<T>(items: T[], size: number): T[][] {
  * appear in binder.json with no code change; an unrecognized section name
  * still renders a valid (fallback-colored) spine via getSpineScheme.
  *
- * v2 rebuild (design-brief.md v2 §4/§5): the wrapper is now a "cabinet"
- * (inset back-wall shadow + optional side walls, enclosing the books rather
- * than leaving them floating on page-white), and each chunk of spines
- * renders as an explicit shelf ROW with its own full-width two-plane plank
- * (top surface + front edge) — the plank is no longer a per-book fused
- * segment, so it stays one continuous, sturdy-looking shelf regardless of
- * how the books above it wrap on narrow viewports.
+ * v3 rebuild (design-brief.md v3 §4/§7/§7.5): the wrapper is still a
+ * "cabinet" back panel (inset shadow — the "layer at the back" Skyler
+ * asked for; the buggy zero-height side walls are dropped, not fixed —
+ * see globals.css).
+ *
+ * Row-chunking decision (§7.5): with book width now fixed/capped (~104px,
+ * not a `flex-basis` fraction of the row), pre-splitting into a fixed
+ * number of shelf groups (tried first) left large dead wood space on
+ * desktop whenever a group's spines didn't fill its row width — with only
+ * ~13 live sections, 3 groups meant some shelves were only half-full,
+ * which visually reads as a broken/empty shelf, not a bookcase. Reverted
+ * to a SINGLE continuous `.binder-shelf` that wraps all spines naturally
+ * at their fixed width — exactly how the reference's one continuous
+ * `.shelf` works (brief §7.5's second, preferred alternative). This wraps
+ * to ~9-10 per row on desktop, ~4-5 on tablet, ~3 on mobile, with no
+ * empty trailing space unless the very last row is partial (unavoidable
+ * and visually normal for any wrapping shelf).
  */
 export default function BinderBookcase({ binders }: BinderBookcaseProps) {
   const spines = binders.flatMap((binder) =>
@@ -45,39 +41,18 @@ export default function BinderBookcase({ binders }: BinderBookcaseProps) {
     return <EmptyState message="No binders published yet." />;
   }
 
-  const rows = chunk(spines, SPINES_PER_ROW);
-
   return (
-    <div className="binder-cabinet relative flex rounded-xl bg-neutral-50 p-4 dark:bg-neutral-900 sm:p-6">
-      {/* Cabinet side wall (B3) — left. */}
-      <div className="binder-cabinet-wall mr-3 hidden shrink-0 rounded-sm sm:block" aria-hidden="true" />
-
-      <div className="flex-1 space-y-8">
-        {rows.map((row, rowIndex) => (
-          <div key={rowIndex} className="relative">
-            {/* Shelf books — items-end so height-jittered books share one
-                baseline; no horizontal gap, seams (A6) supply separation. */}
-            <div className="flex flex-wrap items-end gap-x-0">
-              {row.map(({ binderId, section }) => (
-                <BinderSectionSpine
-                  key={`${binderId}-${sectionNameToSlug(section.name)}`}
-                  binderId={binderId}
-                  section={section}
-                  completion={computeSectionCompletion(section)}
-                />
-              ))}
-            </div>
-
-            {/* Shelf plank (B1) — full-width two-plane plank, one per row,
-                sits under the whole row regardless of how it wraps. */}
-            <div className="shelf-plank-top" aria-hidden="true" />
-            <div className="shelf-plank-edge" aria-hidden="true" />
-          </div>
+    <div className="binder-cabinet relative rounded-xl bg-neutral-50 p-4 dark:bg-neutral-900 sm:p-6">
+      <div className="binder-shelf">
+        {spines.map(({ binderId, section }) => (
+          <BinderSectionSpine
+            key={`${binderId}-${sectionNameToSlug(section.name)}`}
+            binderId={binderId}
+            section={section}
+            completion={computeSectionCompletion(section)}
+          />
         ))}
       </div>
-
-      {/* Cabinet side wall (B3) — right. */}
-      <div className="binder-cabinet-wall ml-3 hidden shrink-0 rounded-sm sm:block" aria-hidden="true" />
     </div>
   );
 }

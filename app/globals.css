@@ -4,14 +4,15 @@
   --background: #ffffff;
   --foreground: #171717;
 
-  /* Bookshelf plank wood tones (BinderSectionSpine / BinderBookcase) — the
-     one intentional non-neutral accent in the palette; see
-     design-brief.md (v2) §4 B1. --shelf-grain is the only sanctioned
-     addition to this token set per the v2 brief §8. */
-  --shelf-top-from: #8a6f4e;
-  --shelf-top-to: #6f5638;
-  --shelf-edge: #5a4326;
-  --shelf-grain: rgba(0, 0, 0, 0.05);
+  /* Bookshelf wood — ported from PokedexBinderV2 styles.css :root
+     (design-brief.md v3 §4.2). These REPLACE the v2 --shelf-top-from/-to/
+     -edge/-grain plank tokens: the shelf is now a wood-textured BOX (the
+     books sit inside it), not a thin plank strip under them. */
+  --wood-1: #6b4a2f;
+  --wood-2: #503722;
+  --wood-3: #3d2a19;
+  --wood-hi: #8a6440;
+  --grain: rgba(30, 18, 8, 0.5);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,10 +20,14 @@
     --background: #0a0a0a;
     --foreground: #ededed;
 
-    --shelf-top-from: #5f4d38;
-    --shelf-top-to: #463421;
-    --shelf-edge: #382713;
-    --shelf-grain: rgba(0, 0, 0, 0.35);
+    /* Modestly darkened vs. the light-mode values (brief §4.2) — the
+       reference site is dark-themed throughout, so these already read
+       well; shifted a little further for our light-background default. */
+    --wood-1: #5a3d26;
+    --wood-2: #422e1c;
+    --wood-3: #2f2114;
+    --wood-hi: #75563a;
+    --grain: rgba(20, 12, 5, 0.55);
   }
 }
 
@@ -39,11 +44,13 @@ body {
 }
 
 /* =========================================================================
-   PTCG Binders "bookshelf" visual — design-brief.md (v2, 2026-07-09).
+   PTCG Binders "bookshelf" visual — design-brief.md (v3, 2026-07-09).
    Static structural CSS (gradients/shadows/clip-paths) lives here as named
-   classes per ui-ux-pro-max stack guidance; per-instance frozen colors and
-   jittered heights stay as inline styles/CSS vars in the components.
-   One light source throughout: top, slightly right (brief §5 C2).
+   classes per ui-ux-pro-max stack guidance; per-instance frozen colors stay
+   as inline styles/CSS vars in the components. Every spine is now a FIXED
+   height/width (no jitter) standing inside a wood-textured `.binder-shelf`
+   box ported from PokedexBinderV2's `.shelf` (v3 §4). One light source
+   throughout: top, slightly right (brief §5 C2).
    ========================================================================= */
 
 /* --- A1: cylindrical shade overlay (book face) — dark-both-edges/bright-
@@ -61,16 +68,6 @@ body {
     rgba(0, 0, 0, 0.1) 82%,
     rgba(0, 0, 0, 0.34) 100%
   );
-}
-
-/* --- A2: seam between side-by-side sub-binders in a block spine. --- */
-.binder-subspine-seam {
-  box-shadow:
-    inset -1px 0 0 rgba(0, 0, 0, 0.35),
-    inset 1px 0 0 rgba(255, 255, 255, 0.12);
-}
-.binder-subspine-seam:last-child {
-  box-shadow: none;
 }
 
 /* --- A3: recessed label plate. Fill is a translucent parchment wash that
@@ -93,9 +90,14 @@ body {
 }
 
 /* --- §6: mandatory dark text scrim inside the label plate. Independent of
-   the plate's parchment fill — guarantees >=4.5:1 (verified ~9:1 worst
-   case) white-text contrast regardless of the frozen color underneath.
-   Must sit above the cylindrical shade + page-block in z-order. --- */
+   the plate's parchment fill — guarantees >=4.5:1 white-text contrast
+   regardless of the frozen color underneath. Must sit above the
+   cylindrical shade + page-block in z-order.
+   v3 fix (brief §6): the v2 scrim's lightest stop (0.55) over the palest
+   frozen color (Gen V #F5F5F0) only cleared ~5:1 at the true worst point,
+   not the ~9:1 the v2 brief assumed. Strengthened so the lightest stop is
+   0.68 (composited ≈ rgb(78,78,77), white contrast ≈ 7.8:1 — comfortable
+   AA margin, near AAA). --- */
 .binder-label-scrim {
   position: absolute;
   inset: 0;
@@ -103,7 +105,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 2px 6px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.55));
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.68));
 }
 
 /* --- A4: top cap — the sliver of the book's top cover, viewed at a
@@ -138,53 +140,72 @@ body {
   box-shadow: inset 1px 0 2px rgba(0, 0, 0, 0.3);
 }
 
-/* --- A6: seam between neighbouring books on the shelf (no layout gap;
-   books touch, the seam supplies the visual separation). --- */
-.binder-book-seam {
-  box-shadow:
-    inset -1px 0 0 rgba(0, 0, 0, 0.28),
-    inset 1px 0 0 rgba(255, 255, 255, 0.1);
-}
-
-/* --- A7: directional base shadow — seats the book on the shelf. Light is
-   top-right, so the shadow falls bottom-left. --- */
+/* --- A7: directional base shadow — seats the book on the shelf.
+   v3 (brief §5): softened vs. v2. Books now sit INSIDE the wood
+   `.binder-shelf` box (not on page-white), so a heavy per-book shadow
+   would double-count with the shelf's own inset base shadow
+   (`.binder-shelf`'s `inset 0 -1px 0 rgba(0,0,0,0.35)`). --- */
 .binder-base-shadow {
-  box-shadow: 3px 8px 10px -6px rgba(0, 0, 0, 0.5);
+  box-shadow: 2px 5px 8px -6px rgba(0, 0, 0, 0.4);
 }
 @media (prefers-color-scheme: dark) {
   .binder-base-shadow {
-    box-shadow: 3px 8px 12px -6px rgba(0, 0, 0, 0.75);
+    box-shadow: 2px 5px 10px -6px rgba(0, 0, 0, 0.6);
   }
 }
 
-/* --- B1: shelf plank — top surface (the sliver you look down onto) and
-   front edge (the vertical face), two distinct planes. --- */
-.shelf-plank-top {
-  height: 7px;
-  width: 100%;
-  clip-path: polygon(0 0, 100% 0, 99% 100%, 1% 100%);
-  background-image: linear-gradient(180deg, var(--shelf-top-from) 0%, var(--shelf-top-to) 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
-}
-.shelf-plank-edge {
-  position: relative;
-  height: 10px;
-  width: 100%;
-  background-color: var(--shelf-edge);
+/* --- B1: the shelf — a wood-textured BOX the books sit INSIDE, ported
+   directly from PokedexBinderV2's `.shelf` rule (design-brief.md v3 §4.3;
+   "the single most important CSS in the whole redesign"). Replaces v2's
+   thin two-plane plank strip (`.shelf-plank-top` / `.shelf-plank-edge`),
+   which drew a thin brown line UNDER floating books instead of a
+   container the books stand inside.
+   Three load-bearing parts, all required:
+     1. background: grain `repeating-linear-gradient` + wood
+        `linear-gradient`, composited via `background-blend-mode: overlay`
+        — reads as textured oak, not a flat brown fill.
+     2. border-bottom: 14px solid — a real, visibly thick wooden front lip.
+     3. three-layer box-shadow (inset top highlight + inset base shadow +
+        outer drop shadow) — gives the shelf physical depth. --- */
+.binder-shelf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px 16px 14px;
+  border-radius: 12px;
+  background:
+    repeating-linear-gradient(
+      100deg,
+      var(--grain) 0px,
+      transparent 1px,
+      transparent 5px,
+      var(--grain) 6px,
+      transparent 8px
+    ),
+    linear-gradient(180deg, var(--wood-1) 0%, var(--wood-2) 100%);
+  background-blend-mode: overlay, normal;
+  border: 1px solid var(--wood-3);
+  border-bottom: 14px solid var(--wood-3);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 8px 12px -6px rgba(0, 0, 0, 0.4);
-  background-image: repeating-linear-gradient(
-    90deg,
-    var(--shelf-grain) 0px,
-    var(--shelf-grain) 2px,
-    transparent 2px,
-    transparent 6px
-  );
+    inset 0 2px 0 var(--wood-hi),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+    0 10px 22px rgba(0, 0, 0, 0.45);
+  position: relative;
+}
+
+@media (max-width: 480px) {
+  .binder-shelf {
+    padding: 12px 12px 12px;
+    gap: 8px;
+    justify-content: center;
+  }
 }
 
 /* --- B2: cabinet interior — inset back-wall shade on the bookcase
-   wrapper, so books read as sitting inside an enclosed cubby. --- */
+   wrapper, so the stack of wood shelves reads as sitting inside an
+   enclosed back panel (Skyler's "bookshelf looking layer at the back" —
+   v3 §5 keeps this as-is). --- */
 .binder-cabinet {
   box-shadow:
     inset 0 0 40px rgba(0, 0, 0, 0.12),
@@ -198,9 +219,52 @@ body {
   }
 }
 
-/* --- B3: cabinet side walls — thin wood strips framing every shelf. --- */
-.binder-cabinet-wall {
-  width: 8px;
-  height: 100%;
-  background-image: linear-gradient(180deg, var(--shelf-top-from), var(--shelf-edge));
+/* B3 (`.binder-cabinet-wall`, v2 side walls) intentionally removed (brief
+   v3 §5): real bug where `height: 100%` on a flex child of an
+   auto-height row resolved to 0, so the walls never rendered. Each
+   `.binder-shelf` is now its own self-contained wood box, which already
+   reads as furniture — the side walls added marginal value and are
+   dropped rather than fixed, per the brief's recommendation. */
+
+/* --- Ring-binder band lines (brief §4.6) — two thin decorative
+   horizontal lines at ~14%/86% of the book body, a subtle nod to the
+   reference `.spine::before`/`::after`. Low priority; kept because it's
+   cheap and doesn't fight the horizontal color bands. --- */
+.binder-ring-lines::before,
+.binder-ring-lines::after {
+  content: "";
+  position: absolute;
+  left: 10%;
+  width: 80%;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+.binder-ring-lines::before {
+  top: 14%;
+}
+.binder-ring-lines::after {
+  bottom: 14%;
+}
+
+/* --- Fixed book dimensions (brief v3 §2 + §7.5 addendum). Height AND
+   width are both fixed/capped — matching the exact PokedexBinderV2
+   `.spine` proportions (104px × 216px desktop, narrower at ≤480px) —
+   not a flex-basis fraction of the row. A flex-basis scheme (the v2
+   `basis-1/3 sm:basis-1/4 lg:basis-1/5` approach) balloons to ~200px wide
+   in the site's max-w-5xl column, which reads as a big square panel, not
+   a narrow book spine. Fixed ~104px width is what makes it read as a
+   book at all. --- */
+.binder-book {
+  width: 104px;
+  min-width: 96px;
+  height: 216px;
+}
+@media (max-width: 480px) {
+  .binder-book {
+    width: 92px;
+    min-width: 88px;
+    height: 184px;
+  }
 }
