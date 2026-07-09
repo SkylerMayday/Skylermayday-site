@@ -59,14 +59,21 @@ body {
   pointer-events: none;
   position: absolute;
   inset: 0;
+  /* More gradient stops than the original 6 (ui-ux-pro-max skeuomorphism
+     guidance: 8-12 stops reads as a genuinely rounded surface rather than
+     a simple two-tone wash) — a proper cylindrical highlight/shadow curve. */
   background-image: linear-gradient(
     90deg,
-    rgba(0, 0, 0, 0.3) 0%,
-    rgba(255, 255, 255, 0.1) 14%,
-    rgba(255, 255, 255, 0.22) 34%,
-    rgba(255, 255, 255, 0.05) 60%,
-    rgba(0, 0, 0, 0.1) 82%,
-    rgba(0, 0, 0, 0.34) 100%
+    rgba(0, 0, 0, 0.36) 0%,
+    rgba(0, 0, 0, 0.16) 8%,
+    rgba(255, 255, 255, 0.08) 18%,
+    rgba(255, 255, 255, 0.24) 30%,
+    rgba(255, 255, 255, 0.26) 42%,
+    rgba(255, 255, 255, 0.12) 56%,
+    rgba(255, 255, 255, 0.02) 68%,
+    rgba(0, 0, 0, 0.14) 82%,
+    rgba(0, 0, 0, 0.2) 92%,
+    rgba(0, 0, 0, 0.38) 100%
   );
 }
 
@@ -176,18 +183,25 @@ body {
   border-radius: 12px;
   /* Per-layer plank dividers: since every .binder-book is a fixed 216px tall
      and the row gap is a fixed 12px, wrapped flex rows land at exact,
-     predictable y-offsets (216px, then every 216+12=228px after). A
-     repeating-linear-gradient drawn in the gap between each visual row
-     reads as an extra shelf plank under each layer of binders, with no
-     JS row-chunking needed — works for any number of wrapped rows. */
+     predictable y-offsets (216px, then every 216+12=228px after). Drawn as
+     a real 3-tone LEDGE (light top bevel, solid wood body, dark shadow
+     underneath) rather than a flat single-tone stripe — a flat stripe blends
+     into the grain and doesn't read as something the books physically rest
+     on; the bevel+shadow gives it the same "sitting on a surface" cue as
+     the shelf's own top highlight / bottom shadow. Works for any number of
+     wrapped rows, no JS row-chunking needed. */
   background:
     repeating-linear-gradient(
       180deg,
       transparent 0px,
       transparent 216px,
-      var(--wood-3) 216px,
+      var(--wood-hi) 216px,
+      var(--wood-hi) 218px,
+      var(--wood-3) 218px,
       var(--wood-3) 224px,
-      transparent 224px,
+      rgba(0, 0, 0, 0.4) 224px,
+      rgba(0, 0, 0, 0.4) 225px,
+      transparent 225px,
       transparent 228px
     ),
     repeating-linear-gradient(
@@ -212,14 +226,19 @@ body {
 @media (max-width: 480px) {
   .binder-shelf {
     /* Mobile plank-divider cycle recomputed for the mobile book height
-       (184px) + mobile gap (8px) = 192px cycle. */
+       (184px) + mobile gap (8px) = 192px cycle. Same 3-tone ledge, thinner
+       to fit the smaller 8px gap. */
     background:
       repeating-linear-gradient(
         180deg,
         transparent 0px,
         transparent 184px,
-        var(--wood-3) 184px,
-        var(--wood-3) 190px,
+        var(--wood-hi) 184px,
+        var(--wood-hi) 185px,
+        var(--wood-3) 185px,
+        var(--wood-3) 189px,
+        rgba(0, 0, 0, 0.4) 189px,
+        rgba(0, 0, 0, 0.4) 190px,
         transparent 190px,
         transparent 192px
       ),
@@ -244,19 +263,46 @@ body {
    enclosed back panel (Skyler's "bookshelf looking layer at the back" —
    v3 §5 keeps this as-is). --- */
 .binder-cabinet {
-  /* Wood-plank frame around the whole bookcase background, so the
-     enclosure reads as a cabinet's own outer frame, not just an inset
-     shadow. Uses the same wood tokens as the shelves. */
-  border: 8px solid var(--wood-3);
+  /* No literal box frame (rejected — read as a picture-frame border, not
+     furniture). Instead: real wood planks on the LEFT/RIGHT edges only,
+     like a bookcase's own side panels, via ::before/::after. Requires
+     the element to clip its pseudo-elements to its own rounded corners. */
+  overflow: hidden;
   box-shadow:
-    inset 0 2px 0 var(--wood-hi),
     inset 0 0 40px rgba(0, 0, 0, 0.12),
     inset 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.binder-cabinet::before,
+.binder-cabinet::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      var(--grain) 0px,
+      transparent 1px,
+      transparent 5px,
+      var(--grain) 6px,
+      transparent 8px
+    ),
+    linear-gradient(90deg, var(--wood-1) 0%, var(--wood-2) 100%);
+  background-blend-mode: overlay, normal;
+  box-shadow: inset 0 0 0 1px var(--wood-3);
+  pointer-events: none;
+  z-index: 1;
+}
+.binder-cabinet::before {
+  left: 0;
+}
+.binder-cabinet::after {
+  right: 0;
 }
 @media (prefers-color-scheme: dark) {
   .binder-cabinet {
     box-shadow:
-      inset 0 2px 0 var(--wood-hi),
       inset 0 0 48px rgba(0, 0, 0, 0.35),
       inset 0 2px 8px rgba(0, 0, 0, 0.45);
   }

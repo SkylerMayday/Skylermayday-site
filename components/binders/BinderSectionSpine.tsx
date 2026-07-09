@@ -3,6 +3,14 @@ import type { BinderSection, BinderCompletion } from "@/lib/binders";
 import { sectionNameToSlug } from "@/lib/binders";
 import { getSpineScheme } from "./sectionSpineColors";
 
+/** Display-only shorthand so labels fit the fixed 104px spine width
+ * (e.g. "Generation I" -> "Gen I"). The full name is still used in the
+ * Link's aria-label and the URL slug — this only shortens what's printed
+ * on the label plate. */
+function shortSectionLabel(name: string): string {
+  return name.replace(/^Generation\s+/, "Gen ");
+}
+
 interface BinderSectionSpineProps {
   binderId: string; // for the URL (e.g. "pokedex")
   section: BinderSection;
@@ -103,7 +111,7 @@ export default function BinderSectionSpine({
               other layer so nothing lightens the text background. */}
           <div className="binder-label-scrim">
             <span className="line-clamp-2 text-center text-xs font-semibold tracking-wide text-white sm:text-sm">
-              {section.name}
+              {shortSectionLabel(section.name)}
             </span>
           </div>
         </div>
