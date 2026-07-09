@@ -1,11 +1,11 @@
 import Link from "next/link";
 
-export default function BinderNotFound() {
+export default function SectionNotFound() {
   return (
     <div className="flex flex-col items-center gap-4 py-24 text-center">
-      <h1 className="text-3xl font-bold">Binder not found</h1>
+      <h1 className="text-3xl font-bold">Section not found</h1>
       <p className="text-neutral-500 dark:text-neutral-400">
-        This binder doesn&apos;t exist or hasn&apos;t been published yet.
+        This section doesn&apos;t exist or hasn&apos;t been published yet.
       </p>
       <Link
         href="/ptcg-binders"

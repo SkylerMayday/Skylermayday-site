@@ -193,3 +193,64 @@ export function findBinderBySlug(
 ): Binder | null {
   return file.binders.find((binder) => binder.id === slug) ?? null;
 }
+
+/**
+ * Number of card slots shown per binder page — a real 9-pocket TCG binder page.
+ */
+export const SLOTS_PER_PAGE = 9;
+
+/**
+ * Converts a section name into a URL-safe kebab-case slug.
+ * "Generation I" -> "generation-i", "VMax" -> "vmax",
+ * "Regional Variants" -> "regional-variants".
+ *
+ * Deterministic and collision-free for the current live section names
+ * (all 13 produce distinct slugs — verified). Diacritics are stripped so a
+ * future "Pokédex"-style name would slugify cleanly.
+ */
+export function sectionNameToSlug(name: string): string {
+  return name
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "") // strip combining diacritical marks
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-") // any run of non-alphanumerics -> single hyphen
+    .replace(/^-+|-+$/g, ""); // trim leading/trailing hyphens
+}
+
+/**
+ * Resolves a section slug back to its BinderSection within a binder.
+ * Returns null if no section matches (caller triggers notFound()).
+ *
+ * If two section names ever slugified to the same value, the FIRST match
+ * in section order wins — acceptable because current live data has no
+ * collisions; documented so a future collision is a known, findable bug.
+ */
+export function findSectionBySlug(
+  binder: Binder,
+  sectionSlug: string
+): BinderSection | null {
+  return (
+    binder.sections.find(
+      (section) => sectionNameToSlug(section.name) === sectionSlug
+    ) ?? null
+  );
+}
+
+/**
+ * Chunks a slot array into fixed-size pages of SLOTS_PER_PAGE.
+ * The last page is a partial page when slots.length % 9 !== 0 — it is
+ * returned SHORT (not padded); empty-slot rendering to fill a 3x3 grid is
+ * a presentation concern handled in the page component, not here.
+ *
+ * An empty slots array returns [] (zero pages). Defensive: callers must
+ * handle the zero-page case (shouldn't occur in live data — every section
+ * has >=33 slots — but a section could in principle be empty).
+ */
+export function paginateSlots(slots: BinderSlot[]): BinderSlot[][] {
+  const pages: BinderSlot[][] = [];
+  for (let i = 0; i < slots.length; i += SLOTS_PER_PAGE) {
+    pages.push(slots.slice(i, i + SLOTS_PER_PAGE));
+  }
+  return pages;
+}

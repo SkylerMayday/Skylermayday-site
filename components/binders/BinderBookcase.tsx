@@ -1,6 +1,6 @@
 import type { Binder } from "@/lib/binders";
-import { computeCompletion } from "@/lib/binders";
-import BinderSpine from "./BinderSpine";
+import { computeSectionCompletion, sectionNameToSlug } from "@/lib/binders";
+import BinderSectionSpine from "./BinderSectionSpine";
 import EmptyState from "@/components/ui/EmptyState";
 
 interface BinderBookcaseProps {
@@ -8,19 +8,30 @@ interface BinderBookcaseProps {
 }
 
 /**
- * Grid designed for N binders — currently renders just "pokedex", but
- * grows automatically as more binders appear in binder.json (P0
- * acceptance #6). No hardcoded binder count/layout here.
+ * Grid designed for N section-spines — was originally one spine per binder,
+ * now flattened to one spine per section (a strict superset of the old
+ * auto-grow guarantee). Grows automatically as new sections (or binders)
+ * appear in binder.json with no code change; an unrecognized section name
+ * still renders a valid (fallback-colored) spine via getSpineScheme.
  */
 export default function BinderBookcase({ binders }: BinderBookcaseProps) {
-  if (binders.length === 0) {
+  const spines = binders.flatMap((binder) =>
+    binder.sections.map((section) => ({ binderId: binder.id, section }))
+  );
+
+  if (spines.length === 0) {
     return <EmptyState message="No binders published yet." />;
   }
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {binders.map((binder) => (
-        <BinderSpine key={binder.id} binder={binder} completion={computeCompletion(binder)} />
+      {spines.map(({ binderId, section }) => (
+        <BinderSectionSpine
+          key={`${binderId}-${sectionNameToSlug(section.name)}`}
+          binderId={binderId}
+          section={section}
+          completion={computeSectionCompletion(section)}
+        />
       ))}
     </div>
   );
