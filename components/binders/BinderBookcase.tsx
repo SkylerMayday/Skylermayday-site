@@ -24,15 +24,25 @@ export default function BinderBookcase({ binders }: BinderBookcaseProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {spines.map(({ binderId, section }) => (
-        <BinderSectionSpine
-          key={`${binderId}-${sectionNameToSlug(section.name)}`}
-          binderId={binderId}
-          section={section}
-          completion={computeSectionCompletion(section)}
-        />
-      ))}
+    <div className="rounded-xl bg-neutral-50 p-4 dark:bg-neutral-900 sm:p-6">
+      {/*
+       * Shelf strip: a single wrapping flex row of vertical spines, no JS
+       * breakpoint logic. Each BinderSectionSpine sets its own responsive
+       * flex-basis (3/4/5 per row) and carries its own plank segment at its
+       * base — wrapped rows self-assemble into discrete shelves purely via
+       * CSS flex-wrap (see design-brief.md §3.1). `items-end` aligns every
+       * spine's base to the same row baseline regardless of height jitter.
+       */}
+      <div className="flex flex-wrap items-end gap-x-0 gap-y-10">
+        {spines.map(({ binderId, section }) => (
+          <BinderSectionSpine
+            key={`${binderId}-${sectionNameToSlug(section.name)}`}
+            binderId={binderId}
+            section={section}
+            completion={computeSectionCompletion(section)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

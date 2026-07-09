@@ -3,12 +3,22 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Bookshelf plank wood tones (BinderSectionSpine) — the one intentional
+     non-neutral accent in the palette; see design-brief.md §3.4. */
+  --shelf-top-from: #8a6f4e;
+  --shelf-top-to: #6f5638;
+  --shelf-edge: #5a4326;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    --shelf-top-from: #5f4d38;
+    --shelf-top-to: #463421;
+    --shelf-edge: #382713;
   }
 }
 
