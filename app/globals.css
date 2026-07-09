@@ -174,7 +174,22 @@ body {
   gap: 12px;
   padding: 16px 16px 14px;
   border-radius: 12px;
+  /* Per-layer plank dividers: since every .binder-book is a fixed 216px tall
+     and the row gap is a fixed 12px, wrapped flex rows land at exact,
+     predictable y-offsets (216px, then every 216+12=228px after). A
+     repeating-linear-gradient drawn in the gap between each visual row
+     reads as an extra shelf plank under each layer of binders, with no
+     JS row-chunking needed — works for any number of wrapped rows. */
   background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0px,
+      transparent 216px,
+      var(--wood-3) 216px,
+      var(--wood-3) 224px,
+      transparent 224px,
+      transparent 228px
+    ),
     repeating-linear-gradient(
       100deg,
       var(--grain) 0px,
@@ -184,7 +199,7 @@ body {
       transparent 8px
     ),
     linear-gradient(180deg, var(--wood-1) 0%, var(--wood-2) 100%);
-  background-blend-mode: overlay, normal;
+  background-blend-mode: normal, overlay, normal;
   border: 1px solid var(--wood-3);
   border-bottom: 14px solid var(--wood-3);
   box-shadow:
@@ -196,6 +211,28 @@ body {
 
 @media (max-width: 480px) {
   .binder-shelf {
+    /* Mobile plank-divider cycle recomputed for the mobile book height
+       (184px) + mobile gap (8px) = 192px cycle. */
+    background:
+      repeating-linear-gradient(
+        180deg,
+        transparent 0px,
+        transparent 184px,
+        var(--wood-3) 184px,
+        var(--wood-3) 190px,
+        transparent 190px,
+        transparent 192px
+      ),
+      repeating-linear-gradient(
+        100deg,
+        var(--grain) 0px,
+        transparent 1px,
+        transparent 5px,
+        var(--grain) 6px,
+        transparent 8px
+      ),
+      linear-gradient(180deg, var(--wood-1) 0%, var(--wood-2) 100%);
+    background-blend-mode: normal, overlay, normal;
     padding: 12px 12px 12px;
     gap: 8px;
     justify-content: center;
@@ -207,13 +244,19 @@ body {
    enclosed back panel (Skyler's "bookshelf looking layer at the back" —
    v3 §5 keeps this as-is). --- */
 .binder-cabinet {
+  /* Wood-plank frame around the whole bookcase background, so the
+     enclosure reads as a cabinet's own outer frame, not just an inset
+     shadow. Uses the same wood tokens as the shelves. */
+  border: 8px solid var(--wood-3);
   box-shadow:
+    inset 0 2px 0 var(--wood-hi),
     inset 0 0 40px rgba(0, 0, 0, 0.12),
     inset 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 @media (prefers-color-scheme: dark) {
   .binder-cabinet {
     box-shadow:
+      inset 0 2px 0 var(--wood-hi),
       inset 0 0 48px rgba(0, 0, 0, 0.35),
       inset 0 2px 8px rgba(0, 0, 0, 0.45);
   }
