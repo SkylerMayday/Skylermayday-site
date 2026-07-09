@@ -13,8 +13,9 @@ interface BinderSectionSpineProps {
  * Deterministic string hash (djb2 variant). Used ONLY to pick a stable
  * height-jitter bucket from the section name — must produce the identical
  * result on server and client render, or React hydration mismatches on the
- * `style.height` attribute (see design-brief.md §3.3.3). Never swap for
- * Math.random()/Date.now(): those differ between SSR and the browser.
+ * `style.height` attribute (see design-brief.md §3.3.3 / v2 §5 C3). Never
+ * swap for Math.random()/Date.now(): those differ between SSR and the
+ * browser.
  */
 function hashString(input: string): number {
   let hash = 5381;
@@ -29,17 +30,24 @@ const SPINE_HEIGHTS = [168, 176, 184, 192];
 
 /**
  * One standing binder on the shelf — a clickable vertical spine for a single
- * section. Some generation spine blocks are near-white (pearl/white/diamond/
- * crystal), so every band gets a defined outer border and the label sits on
- * a gradient dark scrim (from-black/70) that guarantees >=4.5:1 contrast for
- * white text even over the palest block color (Gen V `#F5F5F0`).
+ * section, rebuilt (design-brief.md v2) as a layered CSS "book" object
+ * instead of a flat color band:
  *
- * Renders as a real physical object: rounded top corners, a left-light/
- * right-dark edge overlay for a cylindrical-highlight illusion, a base
- * shadow seating it on the shelf, and a two-tone wood plank fused to its
- * bottom edge. Because spines have zero horizontal gap and share the same
- * `items-end` baseline, adjacent planks visually fuse into one continuous
- * shelf per wrapped row.
+ *  1. Book body        — rounded profile, book-to-book seam (A6), directional
+ *                         base shadow (A7).
+ *  2. Spine face        — color fill (A2: side-by-side sub-binders for
+ *                         `blocks`, single 160deg gradient for `gradient`),
+ *                         page-block fore-edge (A5), cylindrical shade (A1).
+ *  3. Top cap           — skewed/clipped light strip, the top cover sliver
+ *                         (A4) — the single biggest "it's an object" cue.
+ *  4. Label plate       — recessed inset window (A3), spans the whole
+ *                         section (one label per binder-collection).
+ *  5. Text scrim+label  — mandatory dark scrim (§6), ABOVE everything so
+ *                         nothing lightens the text background.
+ *  6. Completion gauge  — thin emerald fill along the plate's base.
+ *
+ * Colors (`sectionSpineColors.ts`) are frozen and untouched — this is a
+ * shape/construction rebuild only.
  */
 export default function BinderSectionSpine({
   binderId,
@@ -53,60 +61,76 @@ export default function BinderSectionSpine({
     <Link
       href={`/ptcg-binders/${binderId}/${sectionNameToSlug(section.name)}`}
       aria-label={`${section.name}, ${completion.pct}% complete (${completion.filled} of ${completion.total})`}
-      className="group relative block basis-1/3 rounded-t-md pb-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 sm:basis-1/4 lg:basis-1/5"
+      className="group relative block basis-1/3 pt-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 sm:basis-1/4 lg:basis-1/5"
     >
-      {/* Spine body — the standing binder itself. */}
+      {/* Book body — overflow-visible so the top cap can poke above it;
+          rounded asymmetric profile (not a perfect rectangle) + book-to-
+          book seam (A6) + directional base shadow (A7). */}
       <div
-        className="relative flex flex-col overflow-hidden rounded-t-md rounded-b-none border-t border-white/25 shadow-[0_6px_10px_-4px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:-translate-y-0.5 dark:shadow-[0_6px_12px_-4px_rgba(0,0,0,0.7)]"
-        style={{ height: `clamp(140px, 40vw, ${spineHeight}px)` }}
+        className="binder-book-seam binder-base-shadow relative transition-transform duration-150 group-hover:-translate-y-0.5"
+        style={{
+          height: `clamp(140px, 40vw, ${spineHeight}px)`,
+          borderRadius: "3px 5px 4px 3px",
+        }}
       >
-        {/* Color fill — stacked horizontal bands (blocks) or a top->bottom
-            gradient. Orientation changed from the old side-by-side stripes
-            per design-brief.md §3.2; hex values are untouched. */}
-        {scheme.kind === "blocks" ? (
-          <div className="flex h-full w-full flex-col">
-            {scheme.blocks.map((color, index) => (
-              <div
-                key={index}
-                className="w-full flex-1 border-neutral-300 last:border-b-0 dark:border-neutral-700"
-                style={{ backgroundColor: color }}
-              />
-            ))}
-          </div>
-        ) : (
-          <div
-            className="h-full w-full"
-            style={{
-              backgroundImage: `linear-gradient(180deg, ${scheme.from}, ${scheme.to})`,
-            }}
-          />
-        )}
+        {/* Top cap (A4) — the sliver of the top cover, lit from above. */}
+        <div className="binder-top-cap" aria-hidden="true" />
 
-        {/* Depth overlay: left-light / right-dark edge highlight, faking a
-            rounded/cylindrical spine catching light on one side and falling
-            into shadow on the other. Sits ABOVE the color fill but BELOW
-            the label scrim so it never lightens the text background. */}
+        {/* Spine face — clips the color fill / page-block / shade to the
+            book's rounded profile. */}
         <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage:
-              "linear-gradient(90deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.06) 18%, rgba(255,255,255,0) 42%, rgba(0,0,0,0) 82%, rgba(0,0,0,0.22) 100%)",
-          }}
-        />
+          className="relative h-full w-full overflow-hidden"
+          style={{ borderRadius: "3px 5px 4px 3px" }}
+        >
+          {/* Color fill (A2). Blocks: side-by-side thin sub-binders, each
+              with its own seam — N game titles = N books standing together.
+              Gradient: single binder, 160deg (top-left light -> bottom-
+              right shadow), agreeing with the top-right light source. */}
+          {scheme.kind === "blocks" ? (
+            <div className="flex h-full w-full flex-row">
+              {scheme.blocks.map((color, index) => (
+                <div
+                  key={index}
+                  className="binder-subspine-seam h-full flex-1"
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div
+              className="h-full w-full"
+              style={{
+                backgroundImage: `linear-gradient(160deg, ${scheme.from}, ${scheme.to})`,
+              }}
+            />
+          )}
 
-        {/* Label scrim — gradient from-black/70 guarantees >=4.5:1 white-text
-            contrast even over the palest spine color (Gen V #F5F5F0). */}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/45 to-transparent px-2 pt-6 pb-2">
-          <span className="line-clamp-2 text-xs font-semibold text-white sm:text-sm">
-            {section.name}
-          </span>
+          {/* Page-block / fore-edge (A5) — stacked page-edge hint on the
+              shadowed right side. */}
+          <div className="binder-page-block" aria-hidden="true" />
+
+          {/* Cylindrical shade (A1) — dark-both-edges/bright-belly overlay,
+              above the color fill, below the label plate. */}
+          <div className="binder-cyl-shade" aria-hidden="true" />
         </div>
 
-        {/* Completion gauge — thin fill-level bar pinned to the very bottom
-            edge, reading like a "how full is this binder" gauge. Numeric
-            value is exposed via the Link's aria-label for screen readers. */}
+        {/* Label plate (A3) — recessed inset window, spans the whole
+            section (one label per binder-collection, not per sub-block). */}
+        <div className="binder-label-plate">
+          {/* Text scrim + label (§6) — mandatory dark scrim, above every
+              other layer so nothing lightens the text background. */}
+          <div className="binder-label-scrim">
+            <span className="line-clamp-2 text-center text-xs font-semibold tracking-wide text-white sm:text-sm">
+              {section.name}
+            </span>
+          </div>
+        </div>
+
+        {/* Completion gauge — thin fill-level bar along the spine's base,
+            reading like a "how full is this binder" gauge. Numeric value is
+            exposed via the Link's aria-label for screen readers. */}
         <div
-          className="absolute inset-x-0 bottom-0 h-[3px] bg-white/25"
+          className="absolute inset-x-0 bottom-0 h-[3px] overflow-hidden rounded-b-[3px] bg-white/25"
           aria-hidden="true"
         >
           <div
@@ -115,21 +139,6 @@ export default function BinderSectionSpine({
           />
         </div>
       </div>
-
-      {/* Wood shelf plank — fused to the spine's base. Adjacent spines in a
-          wrapped row share zero horizontal gap, so their planks butt
-          together into one continuous shelf (design-brief.md §3.4). */}
-      <div
-        className="h-3 w-full"
-        style={{
-          backgroundImage:
-            "linear-gradient(180deg, var(--shelf-top-from), var(--shelf-top-to))",
-        }}
-      />
-      <div
-        className="h-2 w-full border-t border-white/15 shadow-[0_10px_14px_-6px_rgba(0,0,0,0.35)]"
-        style={{ backgroundColor: "var(--shelf-edge)" }}
-      />
     </Link>
   );
 }
