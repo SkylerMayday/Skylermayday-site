@@ -65,6 +65,36 @@ export default function CardZoomModal({
     return () => document.removeEventListener("keydown", onKeyDown, true);
   }, [onClose]);
 
+  // Scroll inertness: while this modal is mounted, the page behind it must
+  // be fully inert. Two parts, one lifecycle (mount → unmount):
+  //   1. Lock body scroll (overflow:hidden). The permanent
+  //      `scrollbar-gutter: stable` on <html> (app/globals.css) keeps the
+  //      scrollbar gutter reserved at all times, so toggling overflow here
+  //      never shifts layout width. Capture and restore body.style.overflow's
+  //      PREVIOUS value on cleanup (restores "" if it was unset — correct).
+  //   2. Block touch scroll-chaining that can leak through a fixed overlay on
+  //      iOS Safari even with overflow:hidden — preventDefault touchmove that
+  //      originates on the backdrop itself (mirrors handleBackdropClick's
+  //      `e.target === e.currentTarget` check, so touches on the image/dialog
+  //      descendants are unaffected). The listener MUST be registered with
+  //      `{ passive: false }` — a passive touchmove listener silently ignores
+  //      preventDefault(), which would look like the fix "didn't work".
+  useEffect(() => {
+    const backdrop = rootRef.current;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function onTouchMove(e: TouchEvent) {
+      if (e.target === e.currentTarget) e.preventDefault();
+    }
+    backdrop?.addEventListener("touchmove", onTouchMove, { passive: false });
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      backdrop?.removeEventListener("touchmove", onTouchMove);
+    };
+  }, []);
+
   // Initial focus on mount.
   useEffect(() => {
     closeButtonRef.current?.focus();

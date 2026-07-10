@@ -61,6 +61,18 @@
   }
 }
 
+html {
+  /* Permanently reserve the scrollbar gutter so locking body scroll
+     (overflow:hidden) while the card-zoom modal is open never shifts page
+     width. scrollbar-gutter is Baseline-widely-available (Chrome 94+,
+     Firefox 97+, Safari 18.2+); on the platforms whose classic scrollbars
+     actually consume layout width — Windows/Linux Chrome/Firefox/Edge —
+     it is fully supported, so it covers exactly the cases that would shift.
+     macOS/iOS Safari use overlay scrollbars that take no layout width, so
+     the absence of the reservation there causes no shift regardless. */
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -575,6 +587,11 @@ body {
 }
 .card-zoom-backdrop {
   animation: card-zoom-backdrop-in 160ms ease-out;
+  /* Stop wheel/touch scroll from chaining to the document behind the
+     fixed overlay (belt-and-braces with the JS body scroll-lock; iOS
+     Safari has a documented history of leaking body scroll through fixed
+     overlays even with overflow:hidden set). */
+  overscroll-behavior: contain;
 }
 .card-zoom-figure {
   animation: card-zoom-figure-in 160ms ease-out;
