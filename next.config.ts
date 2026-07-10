@@ -25,8 +25,13 @@ const cspDirectives = [
   "img-src 'self' data: blob: https://clips-media-assets2.twitch.tv https://*.jtvnw.net https://i.ytimg.com https://images.pokemontcg.io https://cdn.discordapp.com",
   // Self-hosted fonts (next/font). No third-party font CDN.
   "font-src 'self'",
-  // Contact form POSTs same-origin to /api/contact; no external XHR/fetch from browser.
-  "connect-src 'self'",
+  // Contact form POSTs same-origin to /api/contact. Stream Analyser adds a direct
+  // browser connection to Twitch's public GQL endpoint (playback token, chat replay,
+  // VOD list — all client-side POSTs with the public client id, CORS-open). Usher/
+  // CloudFront VOD segments do NOT need an entry here — those are CORS-blocked from
+  // the browser and go through the same-origin audio-proxy/playlist-proxy routes,
+  // already covered by 'self'. See .pipeline/specs.md §3.5.
+  "connect-src 'self' https://gql.twitch.tv",
   // Embedded third-party iframes (TikTok / Instagram embed.js).
   "frame-src https://www.tiktok.com https://www.instagram.com",
   // This site embeds no one else's frames-of-us and should never be framed.

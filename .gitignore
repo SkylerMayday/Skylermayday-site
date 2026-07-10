@@ -32,3 +32,6 @@ next-env.d.ts
 .pipeline-*/
 .claude/
 .gstack/
+
+.vercel
+.env*

@@ -57,6 +57,11 @@ export const env = {
     return requireVar("DISCORD_WEBHOOK_URL");
   },
 
+  // --- Anthropic / Claude relay (Stream Analyser AI cards) ---
+  get ANTHROPIC_API_KEY(): string {
+    return requireVar("ANTHROPIC_API_KEY");
+  },
+
   // --- Tools page ---
   // Not secret, but intentionally NOT NEXT_PUBLIC_: read server-side and
   // passed down as a prop per spec §2 rationale (keep one convention for
@@ -101,4 +106,9 @@ export function hasResendEnv(): boolean {
 /** Returns true if the Discord webhook var is present. */
 export function hasDiscordEnv(): boolean {
   return Boolean(process.env.DISCORD_WEBHOOK_URL);
+}
+
+/** Returns true if the Anthropic API key var is present. */
+export function hasAnthropicEnv(): boolean {
+  return Boolean(process.env.ANTHROPIC_API_KEY);
 }

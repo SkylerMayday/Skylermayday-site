@@ -68,8 +68,19 @@ function enforceCap(nowMs: number): void {
 /**
  * Fixed-window rate limit check. Call once per request; it both checks AND
  * records the attempt (i.e. it increments on an allowed call).
+ *
+ * `maxRequests` defaults to the site-wide MAX_REQUESTS (10/hr, the contact-form
+ * precedent) but callers may override it per-bucket — e.g. the Stream Analyser
+ * proxy routes use a namespaced key with a looser ceiling (see
+ * SA_PROXY_RATE_LIMIT in lib/stream-analyser/allowed-domains.ts) because a
+ * single analysis fans out to ~15 audio-segment fetches, which 10/hr can't
+ * accommodate.
  */
-export function checkRateLimit(key: string, nowMs: number = Date.now()): RateLimitResult {
+export function checkRateLimit(
+  key: string,
+  nowMs: number = Date.now(),
+  maxRequests: number = MAX_REQUESTS
+): RateLimitResult {
   enforceCap(nowMs);
 
   const entry = buckets.get(key);
@@ -79,8 +90,8 @@ export function checkRateLimit(key: string, nowMs: number = Date.now()): RateLim
     buckets.set(key, { count: 1, windowStartMs: nowMs });
     return {
       allowed: true,
-      remaining: MAX_REQUESTS - 1,
-      limit: MAX_REQUESTS,
+      remaining: maxRequests - 1,
+      limit: maxRequests,
       resetAtMs: nowMs + WINDOW_MS,
       retryAfterSeconds: 0,
     };
@@ -88,13 +99,13 @@ export function checkRateLimit(key: string, nowMs: number = Date.now()): RateLim
 
   const resetAtMs = entry.windowStartMs + WINDOW_MS;
 
-  if (entry.count >= MAX_REQUESTS) {
+  if (entry.count >= maxRequests) {
     // Denied. Do not increment — the window must not be extended by
     // repeated denied attempts, so it genuinely expires on schedule.
     return {
       allowed: false,
       remaining: 0,
-      limit: MAX_REQUESTS,
+      limit: maxRequests,
       resetAtMs,
       retryAfterSeconds: Math.ceil((resetAtMs - nowMs) / 1000),
     };
@@ -103,8 +114,8 @@ export function checkRateLimit(key: string, nowMs: number = Date.now()): RateLim
   entry.count += 1;
   return {
     allowed: true,
-    remaining: MAX_REQUESTS - entry.count,
-    limit: MAX_REQUESTS,
+    remaining: maxRequests - entry.count,
+    limit: maxRequests,
     resetAtMs,
     retryAfterSeconds: 0,
   };
@@ -113,4 +124,36 @@ export function checkRateLimit(key: string, nowMs: number = Date.now()): RateLim
 /** Test-only: clears all buckets. Not called by production code. */
 export function __resetRateLimitStore(): void {
   buckets.clear();
+}
+
+/**
+ * Vercel populates `x-forwarded-for` on serverless requests; the client IP
+ * is the first entry in that comma-separated list (Vercel prepends the real
+ * client IP; downstream proxies append). Vercel does not expose `request.ip`
+ * on the standard `Request` in a route handler, and `x-real-ip` is also set
+ * by Vercel as a single value — use it as a fallback.
+ *
+ * Note on spoofability: `x-forwarded-for` is client-settable in general,
+ * but on Vercel the platform overwrites/prepends the true client IP, so
+ * trusting the first entry is correct for this deployment target. We do
+ * not attempt to defend against a caller who bypasses Vercel's edge — not
+ * reachable for a Vercel-hosted site.
+ *
+ * Single source of truth (extracted from app/api/contact/route.ts so every
+ * rate-limited route — contact + the four Stream Analyser routes — shares
+ * the same Vercel-correct trust model instead of copy-pasting it).
+ */
+export function getClientIp(request: Request): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    // First hop is the real client IP on Vercel; trim whitespace.
+    const first = forwarded.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  const real = request.headers.get("x-real-ip");
+  if (real) return real.trim();
+  // Last resort: a single shared bucket. Fail toward limiting (shared bucket)
+  // rather than failing open per-request, since a missing IP on Vercel is
+  // abnormal and we'd rather rate-limit an anomaly than let it bypass.
+  return "unknown";
 }
