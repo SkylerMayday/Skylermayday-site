@@ -1,11 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { BinderSlot } from "@/lib/binders";
 import { paginateSlots, SLOTS_PER_PAGE } from "@/lib/binders";
 import CardSlot from "./CardSlot";
 import PageJumpControl from "./PageJumpControl";
 import EmptyState from "@/components/ui/EmptyState";
+
+/** Minimum horizontal travel (px) for a touch gesture to count as a page-swipe. */
+const MIN_SWIPE_DISTANCE_PX = 50;
+/** Horizontal delta must exceed vertical delta by this factor — rejects vertical scrolls with drift. */
+const HORIZONTAL_DOMINANCE_RATIO = 2;
 
 interface BinderPageViewerProps {
   sectionName: string;
@@ -27,6 +32,8 @@ export default function BinderPageViewer({
   const pages = useMemo(() => paginateSlots(slots), [slots]);
   const [pageIndex, setPageIndex] = useState(0);
   const pageCount = pages.length;
+  const gridRef = useRef<HTMLDivElement>(null);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const goToPrev = useCallback(() => {
     setPageIndex((i) => Math.max(0, i - 1));
@@ -55,6 +62,52 @@ export default function BinderPageViewer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [goToPrev, goToNext]);
 
+  // Mobile swipe-to-turn. Native listeners on the GRID ELEMENT (not window):
+  // native touch events bubble along the real DOM tree, so a touch inside the
+  // portaled CardZoomModal (mounted under document.body, fixed inset-0 z-50)
+  // never reaches this grid listener — the page can't flip behind an open
+  // zoom modal, with no guard or state-lifting needed. (A React synthetic
+  // onTouchStart here WOULD catch modal touches via React-tree bubbling
+  // through the portal — do not use that.) touchstart/touchend only: the
+  // final delta is all we need (no follow-the-finger animation). passive:
+  // true because we never preventDefault (vertical scroll stays free).
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+
+    function handleTouchStart(event: TouchEvent) {
+      const touch = event.changedTouches[0];
+      if (!touch) return;
+      touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    }
+
+    function handleTouchEnd(event: TouchEvent) {
+      const start = touchStartRef.current;
+      touchStartRef.current = null;
+      if (!start) return;
+      const touch = event.changedTouches[0];
+      if (!touch) return;
+      const deltaX = touch.clientX - start.x;
+      const deltaY = touch.clientY - start.y;
+      const isHorizontalSwipe =
+        Math.abs(deltaX) >= MIN_SWIPE_DISTANCE_PX &&
+        Math.abs(deltaX) > Math.abs(deltaY) * HORIZONTAL_DOMINANCE_RATIO;
+      if (!isHorizontalSwipe) return;
+      if (deltaX < 0) {
+        goToNext(); // swipe left -> next page
+      } else {
+        goToPrev(); // swipe right -> previous page
+      }
+    }
+
+    grid.addEventListener("touchstart", handleTouchStart, { passive: true });
+    grid.addEventListener("touchend", handleTouchEnd, { passive: true });
+    return () => {
+      grid.removeEventListener("touchstart", handleTouchStart);
+      grid.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [goToPrev, goToNext]);
+
   if (pageCount === 0) {
     return <EmptyState message="This section has no cards yet." />;
   }
@@ -67,7 +120,7 @@ export default function BinderPageViewer({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-3 gap-2">
+      <div ref={gridRef} className="grid grid-cols-3 gap-2">
         {cells.map((slot, i) =>
           slot ? <CardSlot key={slot.slotId} slot={slot} /> : <EmptyTile key={`empty-${i}`} />
         )}
