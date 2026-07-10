@@ -360,7 +360,8 @@ body {
      1. background: grain `repeating-linear-gradient` + wood
         `linear-gradient`, composited via `background-blend-mode: overlay`
         — reads as textured oak, not a flat brown fill.
-     2. border-bottom: 14px solid — a real, visibly thick wooden front lip.
+     2. border-bottom: 29px solid — a real, visibly thick wooden front lip
+        (bumped +15px per Skyler, 2026-07-10).
      3. three-layer box-shadow (inset top highlight + inset base shadow +
         outer drop shadow) — gives the shelf physical depth. --- */
 .binder-shelf {
@@ -412,7 +413,7 @@ body {
     linear-gradient(180deg, var(--wood-1) 0%, var(--wood-2) 100%);
   background-blend-mode: normal, normal, overlay, normal;
   border: 1px solid var(--wood-3);
-  border-bottom: 14px solid var(--wood-3);
+  border-bottom: 29px solid var(--wood-3);
   box-shadow:
     inset 0 2px 0 var(--wood-hi),
     inset 0 -1px 0 rgba(0, 0, 0, 0.35),
