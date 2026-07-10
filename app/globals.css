@@ -557,3 +557,31 @@ body {
     height: 184px;
   }
 }
+
+/* =========================================================================
+   PTCG card-zoom lightbox — entrance animation only. Presentation polish;
+   suppressed under prefers-reduced-motion, mirroring the .binder-obj hover
+   convention above. Overlay colors are intentionally theme-independent
+   (a lightbox is dark in both light and dark mode), so there is no
+   prefers-color-scheme override here by design.
+   ========================================================================= */
+@keyframes card-zoom-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes card-zoom-figure-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.card-zoom-backdrop {
+  animation: card-zoom-backdrop-in 160ms ease-out;
+}
+.card-zoom-figure {
+  animation: card-zoom-figure-in 160ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-zoom-backdrop,
+  .card-zoom-figure {
+    animation: none;
+  }
+}
