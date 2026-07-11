@@ -66,12 +66,17 @@ export default function CardZoomModal({
   }, [onClose]);
 
   // Scroll inertness: while this modal is mounted, the page behind it must
-  // be fully inert. Two parts, one lifecycle (mount → unmount):
-  //   1. Lock body scroll (overflow:hidden). The permanent
+  // be fully inert. Three parts, one lifecycle (mount → unmount):
+  //   1. Lock BOTH <html> and <body> overflow (overflow:hidden). Standards-mode
+  //      documents scroll via `document.documentElement` (<html>), not <body> —
+  //      locking body alone leaves <html> scrollable, so a real scroll gesture,
+  //      keyboard Page Down/Space, or a focus-triggered scrollIntoView still
+  //      moves the page behind the modal (confirmed live: window.scrollTo still
+  //      moved documentElement.scrollTop with only body locked). The permanent
   //      `scrollbar-gutter: stable` on <html> (app/globals.css) keeps the
   //      scrollbar gutter reserved at all times, so toggling overflow here
-  //      never shifts layout width. Capture and restore body.style.overflow's
-  //      PREVIOUS value on cleanup (restores "" if it was unset — correct).
+  //      never shifts layout width. Capture and restore both elements' PREVIOUS
+  //      overflow value on cleanup (restores "" if it was unset — correct).
   //   2. Block touch scroll-chaining that can leak through a fixed overlay on
   //      iOS Safari even with overflow:hidden — preventDefault touchmove that
   //      originates on the backdrop itself (mirrors handleBackdropClick's
@@ -81,8 +86,11 @@ export default function CardZoomModal({
   //      preventDefault(), which would look like the fix "didn't work".
   useEffect(() => {
     const backdrop = rootRef.current;
-    const prevOverflow = document.body.style.overflow;
+    const htmlEl = document.documentElement;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = htmlEl.style.overflow;
     document.body.style.overflow = "hidden";
+    htmlEl.style.overflow = "hidden";
 
     function onTouchMove(e: TouchEvent) {
       if (e.target === e.currentTarget) e.preventDefault();
@@ -90,7 +98,8 @@ export default function CardZoomModal({
     backdrop?.addEventListener("touchmove", onTouchMove, { passive: false });
 
     return () => {
-      document.body.style.overflow = prevOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+      htmlEl.style.overflow = prevHtmlOverflow;
       backdrop?.removeEventListener("touchmove", onTouchMove);
     };
   }, []);
