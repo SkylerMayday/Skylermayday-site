@@ -4,24 +4,44 @@
   --background: #ffffff;
   --foreground: #171717;
 
-  /* Bookshelf wood — ported from PokedexBinderV2 styles.css :root
-     (design-brief.md v3 §4.2). These REPLACE the v2 --shelf-top-from/-to/
-     -edge/-grain plank tokens: the shelf is now a wood-textured BOX (the
-     books sit inside it), not a thin plank strip under them. */
-  --wood-1: #6b4a2f;
-  --wood-2: #503722;
-  --wood-3: #3d2a19;
-  --wood-hi: #8a6440;
-  --grain: rgba(30, 18, 8, 0.5);
-  /* --wood-frame (design-brief.md "Open Carcase" §9): darker + slightly
-     more saturated than --wood-3 (#3d2a19), SAME hue family (~H27°,
-     S~46%, L~14% vs wood-3's L18%) — a richer/denser structural-trim wood
-     (walnut-adjacent) for the new crown rail + side uprights, distinct
-     from the shelf's own lighter interior tone so frame vs. shelf-interior
-     read as two different wood elements of one assembly. Do not go darker
-     than roughly L:10% — the --grain diagonal texture needs enough
-     underlying value range to stay visible. */
-  --wood-frame: #2e1f12;
+  /* Bookshelf wood — "Slim Carcase" v8 (design-brief.md v8 §4.2). REPLACES
+     "Open Carcase" v6's five-token family (--wood-1/2/3/-hi/-frame) in
+     full: one continuous body tone for every front-facing structural
+     member (cap/panels/boards/plinth — no separate "frame" tone, the
+     literal implementation of brief §2's "no color boundary between frame
+     and interior" argument), one much darker recessed interior tone, and
+     a hard-edge highlight that is the sole legibility mechanism (brief
+     §4.1 — both v6's and v7's reviews independently found fill-contrast
+     alone doesn't reliably register; hard-edge lines did, at every scale). */
+  --wood-body: #6b4a2f; /* = legacy --wood-1's exact hex, reused
+     deliberately (brief §4.2): the frozen sectionSpineColors.ts palette
+     was tuned against this exact backdrop tone across v3-v6 — reusing it
+     keeps that relationship intact instead of introducing a fresh
+     variable into an already-large structural change. */
+  --wood-recess: #2e1f14; /* Revised value per Skyler's direct instruction
+     ("use a brighter dark colour") — the original proposal (#120c08,
+     L≈5%) pushed to near-black to exploit being exempt from the
+     grain-legibility floor (see below), but read moodier than the
+     reference photo warranted. Landed close to v6's old --wood-frame
+     (#2e1f12) — a vetted, real dark-wood tone from prior iterations, not
+     a fresh guess. Deliberately NOT grain-legible: this plane is meant to
+     read as a shadowed, detail-poor interior cavity, not textured wood —
+     physically correct for a receded plane, not a shortfall (brief §4.1),
+     so unlike the old --wood-frame it's free to sit well below the ~L:10%
+     floor that texture-legibility used to impose. */
+  --wood-hi: #c8a878; /* The actual legibility mechanism (brief §4.1): every
+     structural boundary (cap top, panel inward edge, board top, plinth
+     top) depends on this hard-edged line against --wood-body to register,
+     not on fill-contrast. Tuned to ≥3.5:1 against --wood-body in light
+     mode, ≥5:1 in dark — stronger in dark than light, deliberately
+     inverting the direction that broke v6 (its --wood-frame could only
+     get darker in dark mode, the wrong direction for legibility against
+     an already-dark scene). */
+  --grain: rgba(30, 18, 8, 0.5); /* Now used on the side panels only —
+     the reference (brief §1) reads panels as "the same wood tone AND
+     GRAIN as everything else." Omitted from the cap (8px is too thin to
+     read texture) and from the shelf's recess plane (brief §4.1: recess
+     is deliberately not meant to be texture-legible). */
 
   /* Row-pitch robustness tokens (design-brief.md §3.2). These DUPLICATE
      values that live elsewhere (.binder-book's frozen height, the Link's
@@ -65,18 +85,17 @@
     --background: #0a0a0a;
     --foreground: #ededed;
 
-    /* Modestly darkened vs. the light-mode values (brief §4.2) — the
-       reference site is dark-themed throughout, so these already read
-       well; shifted a little further for our light-background default. */
-    --wood-1: #5a3d26;
-    --wood-2: #422e1c;
-    --wood-3: #2f2114;
-    --wood-hi: #75563a;
+    /* "Slim Carcase" v8 dark-mode tokens (design-brief.md v8 §4.2, exact
+       revised values — supersedes the "Open Carcase" v6 five-token dark
+       set). --wood-hi is the one token deliberately NOT scaled down by the
+       usual ~20% darkening relationship the other pairs use — brief §4.1:
+       it's brightened in dark mode (per v6 Reviewer's own recommendation),
+       not darkened, since it's the sole legibility mechanism and dark
+       scenes need MORE edge contrast, not less. */
+    --wood-body: #58402a;
+    --wood-recess: #241a10;
+    --wood-hi: #e0bd8c;
     --grain: rgba(20, 12, 5, 0.55);
-    /* Same ~20% darkening relationship the existing light->dark pairs
-       already use (e.g. wood-3 #3d2a19 -> #2f2114 is roughly a 0.78x
-       per-channel scale; applied the same way here). */
-    --wood-frame: #201509;
   }
 }
 
@@ -398,20 +417,14 @@ body {
   }
 }
 
-/* --- B1: the shelf — a wood-textured BOX the books sit INSIDE, ported
-   directly from PokedexBinderV2's `.shelf` rule (design-brief.md v3 §4.3;
-   "the single most important CSS in the whole redesign"). Replaces v2's
-   thin two-plane plank strip (`.shelf-plank-top` / `.shelf-plank-edge`),
-   which drew a thin brown line UNDER floating books instead of a
-   container the books stand inside.
-   Three load-bearing parts, all required:
-     1. background: grain `repeating-linear-gradient` + wood
-        `linear-gradient`, composited via `background-blend-mode: overlay`
-        — reads as textured oak, not a flat brown fill.
-     2. border-bottom: 50px solid — a real, visibly thick wooden front lip
-        (set to 50px per Skyler, 2026-07-10).
-     3. three-layer box-shadow (inset top highlight + inset base shadow +
-        outer drop shadow) — gives the shelf physical depth. --- */
+/* --- B1: the shelf — a wood-textured BOX the books sit INSIDE (v3 §4.3
+   origin note, still applicable). "Slim Carcase" v8 rebuild (design-brief
+   §3.1.3/§3.1.5): the repeating board-ledge motif shrinks 22px 5-band ->
+   8px 3-band, the soft contact-shadow + back-panel-sliver simulated-depth
+   layers are DELETED (the flat --wood-recess base below is now a real
+   color/depth cavity, not a simulated one — brief §3.1.5), and the old
+   50px `border-bottom` front lip is deleted in favor of a same-treatment
+   8px closing board (below). --- */
 .binder-shelf {
   display: flex;
   flex-wrap: wrap;
@@ -419,85 +432,63 @@ body {
   /* v5 §3.2: gap split — wood must be visible between wrapped rows, and
      the second row's top faces need air (24px vertical vs 12px between
      spines). v5 §3.1: 24px top padding so the visible top-face trapezoid
-     (~10-14px) plus the Link's pt-3 (12px) renders inside the wood, not
-     clipped against `.binder-cabinet`'s overflow:hidden. */
+     (~10-14px) plus the Link's pt-3 (12px) renders inside the wood. */
   column-gap: 12px;
   row-gap: var(--binder-row-gap);
   padding: 24px 16px 14px;
-  border-radius: 12px;
-  /* Rebuilt shelf-board ledge (design-brief.md "Open Carcase" §3.1.3/§9,
-     supersedes the v5 9px three-tone stripe). Each cycle of the repeating
-     gradient below is anchored to `--binder-row-pitch` (the calc()-token
-     robustness fix, §3.2 — replaces the old hand-computed 252px/212px
-     literals; this file no longer needs the pitch re-derived in prose
-     when book height/Link padding/row-gap change, only the three tokens
-     at :root do). Within each 22px-tall cycle-start motif (fits inside
-     the 24px desktop row-gap with ~2px to spare; see the "known residual
-     limit" note in the .binder-cabinet CLS comments for the tighter
-     mobile 16px case):
-       0-6px   soft contact-shadow (transparent -> rgba(0,0,0,.18)),
-               simulating the weight of the row resting on the board below
-               — a background-gradient layer, NOT box-shadow (a box-shadow
-               here would read as a floating card, breaking the flat-
-               painted-illustration technique the rest of this component
-               uses).
-       6-8px   board highlight bevel, hard edge (--wood-hi).
-       8-16px  board body, hard edge (--wood-3, the ledge's existing body
-               tone — no new hex here).
-       16-18px board underside shadow, hard edge (rgba(0,0,0,.45)) —
-               deliberately crisp, not blurred, so it reads as the board's
-               own edge rather than the soft cast-shadow above it.
-       18-22px back-panel sliver (--wood-2 at 18% alpha via color-mix so
-               it dark-mode-adapts automatically) — a glimpse of the wall
-               behind the shelf before the next row's grain resumes.
-     Because the pattern is anchored at y=0, this motif also paints
-     spuriously at the very top of the shelf (inside the 24px top
-     padding) — the topmost plain-gradient layer masks exactly that
-     22px strip back to flat wood (was 9px pre-rebuild). */
+  /* v8 §3.3: border-radius removed (square corners throughout — see the
+     .binder-cabinet comment for the full reasoning; this is the other
+     half of that same corner-treatment change). */
+  /* Board motif + recess plane (design-brief.md v8 §3.1.3/§3.1.5). Layers,
+     paint order top to bottom:
+       1. Closing board — a non-repeating, bottom-anchored 8px band (same
+          2px-hi/4px-body/2px-shadow treatment as the between-row motif
+          below), replacing the old 50px border-bottom front lip. This is
+          a SEPARATE declaration from the repeating motif (brief §3.2's
+          flagged nuance): flex-wrap has no phantom row below the real
+          last row for a repeating-gradient's final cycle to paint into,
+          so the closing board and the between-row motif are two rules
+          producing the same visual, not one unified mechanism.
+       2. Top mask — the repeating motif (layer 3) is anchored at y=0 of
+          this box's own padding-box, so its first cycle would paint a
+          spurious board right under the top cap where no row exists
+          above it. Flat-fills the top padding's height back to the plain
+          recess tone. Reuses v6's own "don't re-declare per breakpoint"
+          convention (§3.2, "reused, not reinvented") — a single value
+          sized to the desktop 24px top padding, not re-derived for
+          mobile's 16px: the real per-row boards are anchored to
+          --binder-row-pitch far below this strip regardless, so this
+          only ever affects the purely cosmetic strip above the first row.
+       3. Between-row board motif — 22px 5-band -> 8px 3-band: 2px hard
+          --wood-hi highlight / 4px --wood-body / 2px hard rgba(0,0,0,.5)
+          underside shadow. Anchored to --binder-row-pitch (the calc()-
+          token robustness fix, §3.2, carried forward unchanged).
+       4. Recessed back-panel plane (brief §3.1.5) — flat --wood-recess,
+          grain omitted (brief §4.1: deliberately not meant to be
+          texture-legible; the ambient --wood-body/--wood-recess fill
+          contrast is a sensed depth cue, not a legibility mechanism). */
   background:
-    linear-gradient(180deg, var(--wood-1) 0px 22px, rgba(0, 0, 0, 0) 22px),
+    linear-gradient(
+        180deg,
+        var(--wood-hi) 0 2px,
+        var(--wood-body) 2px 6px,
+        rgba(0, 0, 0, 0.5) 6px 8px
+      )
+      bottom / 100% 8px no-repeat,
+    linear-gradient(180deg, var(--wood-recess) 0 24px, transparent 24px),
     repeating-linear-gradient(
       180deg,
-      transparent 0px,
-      rgba(0, 0, 0, 0.18) 6px,
-      var(--wood-hi) 6px,
-      var(--wood-hi) 8px,
-      var(--wood-3) 8px,
-      var(--wood-3) 16px,
-      rgba(0, 0, 0, 0.45) 16px,
-      rgba(0, 0, 0, 0.45) 18px,
-      color-mix(in srgb, var(--wood-2) 18%, transparent) 18px,
-      color-mix(in srgb, var(--wood-2) 18%, transparent) 22px,
-      transparent 22px,
+      var(--wood-hi) 0px,
+      var(--wood-hi) 2px,
+      var(--wood-body) 2px,
+      var(--wood-body) 6px,
+      rgba(0, 0, 0, 0.5) 6px,
+      rgba(0, 0, 0, 0.5) 8px,
+      transparent 8px,
       transparent var(--binder-row-pitch)
     ),
-    repeating-linear-gradient(
-      100deg,
-      var(--grain) 0px,
-      transparent 1px,
-      transparent 5px,
-      var(--grain) 6px,
-      transparent 8px
-    ),
-    /* Back-panel seam texture (design-brief.md §3.1.4/§9, new layer) — a
-       very low-alpha 140px-pitch seam pattern (matches the existing grain
-       layer's repeat cadence, not arbitrary) suggesting seamed back-boards
-       behind the shelves. Deliberately the lowest-alpha layer in the whole
-       stack: meant to be found on close inspection, not read at a glance.
-       color-mix() (not a literal rgba) so it inherits dark-mode
-       correctness automatically from --wood-3, no separate override
-       needed. */
-    repeating-linear-gradient(
-      180deg,
-      transparent 0px,
-      transparent 139px,
-      color-mix(in srgb, var(--wood-3) 10%, transparent) 139px,
-      color-mix(in srgb, var(--wood-3) 10%, transparent) 140px
-    ),
-    linear-gradient(180deg, var(--wood-1) 0%, var(--wood-2) 100%);
-  background-blend-mode: normal, normal, overlay, normal, normal;
-  border: 1px solid var(--wood-3);
-  border-bottom: 50px solid var(--wood-3);
+    var(--wood-recess);
+  border: 1px solid var(--wood-recess);
   box-shadow:
     inset 0 2px 0 var(--wood-hi),
     inset 0 -1px 0 rgba(0, 0, 0, 0.35),
@@ -507,54 +498,47 @@ body {
 
 @media (max-width: 480px) {
   .binder-shelf {
-    /* Mobile: no background re-declaration needed anymore (the calc()-
-       token robustness fix, §3.2) — `--binder-row-pitch` and
-       `--binder-row-gap` both recompute automatically from the mobile
-       :root token overrides above (book-h 184 + link-pt 12 + row-gap 16 =
-       212px pitch), so the SAME `.binder-shelf` background declaration
-       above picks up the correct mobile cycle length via the cascade.
-       KNOWN RESIDUAL LIMIT (brief §4 RISK item 3, stated plainly): the
-       rebuilt board motif is a fixed 22px tall (contact-shadow 6 + board
-       12 + back-panel sliver 4), same as desktop, but the mobile row-gap
-       is only 16px — 6px tighter than the motif needs. The motif's own
-       top/bottom edges (soft contact-shadow, low-alpha sliver) will bleed
-       a few px into the neighboring rows' vertical span; since spines are
-       opaque and painted above the shelf background, this bleed is only
-       visible in the already-tight ~5.8px gap-to-spine clearance flagged
-       in gaps.md, not a layout break. Verified visually (not just by
-       arithmetic) at both mobile breakpoints — see design-changes.md. */
+    /* Mobile: no background re-declaration needed (the calc()-token
+       robustness fix, §3.2, carried forward unchanged) — `--binder-row-
+       pitch` and `--binder-row-gap` both recompute automatically from the
+       mobile :root token overrides above (book-h 184 + link-pt 12 +
+       row-gap 16 = 212px pitch), so the SAME `.binder-shelf` background
+       declaration above picks up the correct mobile cycle length via the
+       cascade.
+       v8 §3.4/§7: the OLD 22px motif's "known residual limit" (gaps.md:
+       exceeded the 16px mobile row-gap by 6px, bleeding into the tight
+       ~5.8px gap-to-spine clearance) is closed as a side effect of the
+       motif shrinking to 8px — 8px now fits inside the 16px mobile
+       row-gap with 8px to spare, no bleed. Verified live at both mobile
+       breakpoints — see design-changes.md. */
     padding: 16px 12px 12px;
     column-gap: 8px;
     justify-content: center;
   }
 }
 
-/* --- Crown rail (design-brief.md "Open Carcase" §3.1.1/§9, new) — the
-   bookcase's top trim board that the side uprights key into. Rendered as
-   the first child of `.binder-cabinet` in BinderBookcase.tsx (a plain
-   `aria-hidden` div, no new client logic). `-mx-4/-mt-4` (mobile) and
+/* --- Top cap (design-brief.md v8 §3.1.1, renamed/rebuilt from "Open
+   Carcase"'s `.binder-cabinet-crown`) — a plain flat board resting across
+   the tops of the side panels, not a crown/trim rail. Rendered as the
+   first child of `.binder-cabinet` in BinderBookcase.tsx (a plain
+   `aria-hidden` div, no client logic). `-mx-4/-mt-4` (mobile) and
    `sm:-mx-6/sm:-mt-6` (desktop) on the element in the JSX cancel out
    `.binder-cabinet`'s own p-4/sm:p-6 padding for THIS element only, so it
    bleeds flush to the cabinet's border-box top/left/right edges — flush
    against the top-left/top-right corners where the (also edge-to-edge)
-   side uprights start, so the two visually key into each other instead
-   of floating separately inside the cabinet's neutral padding. Converts
-   what was previously inert neutral padding into an actual visible rail;
-   see the .binder-cabinet CLS comments below for the resulting height
-   delta. z-index above the uprights (1) so the rail paints on top at the
-   corner overlap, reading as "rail resting across the tops of the
-   uprights." */
-.binder-cabinet-crown {
-  height: 12px;
-  background: var(--wood-frame);
-  box-shadow:
-    /* Razor-thin top bevel — hard-edged 2px highlight, matching the
-       shelf ledge's own hard-edge convention, NOT a soft multi-stop
-       glow (a soft/blurred bevel here reads as a modern rounded-button
-       highlight, not wood trim). */
-    inset 0 2px 0 var(--wood-hi),
-    /* Under-shadow: the rail casting shadow onto what's below it. */
-    inset 0 -3px 4px rgba(0, 0, 0, 0.35);
+   side panels start, so the two visually key into each other instead of
+   floating separately inside the cabinet's neutral padding. 12px -> 8px
+   (4pt grid, v8 §3.1.1); flat --wood-body fill (no separate frame tone
+   exists anymore — v8 §2/§6's whole point is one continuous material);
+   one hard 2px --wood-hi top-edge highlight; NO under-shadow gradient
+   (the reference's cap reads as flat, not beveled into a rail — v6's
+   `inset 0 -3px 4px` under-shadow is deliberately dropped). z-index above
+   the panels (1) so the cap paints on top at the corner overlap, reading
+   as "board resting across the tops of the panels." */
+.binder-cabinet-cap {
+  height: 8px;
+  background: var(--wood-body);
+  box-shadow: inset 0 2px 0 var(--wood-hi);
   position: relative;
   z-index: 2;
 }
@@ -562,103 +546,83 @@ body {
 /* --- B2: cabinet interior — inset back-wall shade on the bookcase
    wrapper, so the stack of wood shelves reads as sitting inside an
    enclosed back panel (Skyler's "bookshelf looking layer at the back" —
-   v3 §5 keeps this as-is). --- */
+   unchanged since v3 §5). --- */
 .binder-cabinet {
-  /* No literal box frame (rejected — read as a picture-frame border, not
-     furniture). Instead: real wood planks on the LEFT/RIGHT edges only,
-     like a bookcase's own side panels, via ::before/::after. Requires
-     the element to clip its pseudo-elements to its own rounded corners. */
-  overflow: hidden;
+  /* v8 §3.3: rounded-xl + overflow:hidden REMOVED (both here and in the
+     JSX className). Two independent reasons converge: (1) the reference
+     photo has hard square corners throughout — real furniture doesn't
+     round; (2) the new plinth (below) needs to bleed PAST this element's
+     own left/right edges to read as a flared foot, and overflow:hidden
+     (which existed only to clip the panels to the old rounded corners)
+     would clip that bleed. Removing the rounding removes the reason for
+     the clip. Flagged as a real, deliberate RISK in the brief (§5.1) —
+     visible departure from every prior shipped iteration. */
   box-shadow:
-    inset 0 0 40px rgba(0, 0, 0, 0.12),
-    inset 0 2px 6px rgba(0, 0, 0, 0.15);
-  /* CLS mitigation (2026-07-11, speculative; RECOMPUTED 2026-07-11 for
-     the "Open Carcase" rebuild, design-brief.md §3.2/§4 RISK item 3): a
-     same-tick layout shift (~40ms after first paint, CLS 0.138) was
-     measured live on /ptcg-binders — the shelf's real height wasn't
-     reserved before this component's CSS/layout settled, so the footer
-     jumped down once it did. min-height reserves the SHORTEST plausible
-     rendered height so the residual shift (if any) stays
-     same-direction/smaller, never reversed — see the >480px value's
-     derivation below.
-     Recompute reason: the new `.binder-cabinet-crown` bleeds through
-     this element's own sm:p-6/p-4 padding via matching negative margins
-     (see the crown rule's comment above .binder-cabinet), so the crown's
-     12px height REPLACES the old flat padding-top rather than adding to
-     it — net effect, the cabinet gets ~12px (desktop) / ~4px (mobile)
-     SHORTER, not taller. The widened/retoned uprights don't affect
-     height (absolute, top:0/bottom:0, width-only). The rebuilt shelf
-     boards don't affect height either (background-paint only inside the
-     unchanged row-gap/padding/border box model).
-     Widest-viewport floor: 13 sections at ~9-10/row (BinderBookcase.tsx
-     comment) = 2 rows minimum. Per-row envelope 228px (12px Link pt-3 +
-     216px book, see .binder-shelf comment) → shelf content 252*2 = 504px
-     + shelf bottom padding 14px + borders (1px top + 50px bottom) = 569px
-     shelf height, + crown-to-shelf offset 12px (was this cabinet's own
-     sm:p-6 24px padding-top, now replaced by the crown) + sm:p-6 (24px)
-     padding-bottom = 605px. RE-MEASURED live (2026-07-11) against the
-     actual rendered "Open Carcase" build via gstack browse on the
-     production page (natural height with min-height temporarily
-     zeroed): 605px, matching this formula exactly. Approximate as a
-     formula only in the sense the original 617px was — narrower-than-
-     desktop widths in this bucket will still under-reserve (more rows
-     than 2), which is the deliberately safe direction. Recompute again
-     if section count, spine size, or shelf/crown padding/border change. */
-  min-height: 605px;
+    /* v8 §3.1.5: strengthened slightly vs. v6 (was .12/.15, light;
+       .35/.45, dark) to reinforce the now-literal (not simulated)
+       recessed-cavity read behind the new flat --wood-recess plane. */
+    inset 0 0 40px rgba(0, 0, 0, 0.16),
+    inset 0 2px 6px rgba(0, 0, 0, 0.2);
+  /* CLS mitigation — RECOMPUTED + LIVE-MEASURED (2026-07-11) for the
+     "Slim Carcase" v8 rebuild (design-brief.md v8 §8), per this repo's
+     established method: min-height zeroed, natural rendered height read
+     live via gstack browse (live CSS+DOM injection over the production
+     /ptcg-binders page — same technique used successfully in v6/v7), not
+     estimated from arithmetic alone. 605px (v6) -> 544px (v8), a ~61px /
+     ~10% reduction — the substantial reduction the brief expected: the
+     50px front-lip border-bottom shrinking to a 1px border (the 8px
+     closing board is now a background layer painted inside the existing
+     bottom padding, adding no extra box height) is the dominant savings
+     term; the 12px->8px cap trim saves a further few px on top of that;
+     the new 16px plinth adds real height back but not enough to offset
+     those savings. Widest-viewport floor unchanged in method from v6: verified
+     the site's own max-w-5xl container caps real content width at 992px
+     regardless of viewport (measured identical 544px at both 1280px and
+     1920px viewports) — 13 sections wrap to 7/row -> 2 rows at that
+     content width, the shortest-plausible case this value must reserve
+     for. See design-changes.md for the exact injection method and
+     before/after numbers. */
+  min-height: 544px;
 }
 
 @media (max-width: 480px) {
   .binder-cabinet {
-    /* Mobile floor, RECOMPUTED + RE-MEASURED live (2026-07-11) for the
-       "Open Carcase" rebuild: same crown-replaces-padding logic as the
-       desktop comment above, but mobile's crown-to-shelf offset is 12px
-       replacing p-4's 16px padding-top (a 4px delta, smaller than
-       desktop's 12px delta because p-4 itself is smaller than sm:p-6).
-       Old value 1155px -> new 1151px (1155 - 4). Real rendered height
-       still splits within this single 480px bucket — 428-480px widths
-       fit 3/row (13 sections -> 5 rows, 1151px real height, this value);
-       narrower widths only fit 2/row (7 rows, 1575px — see the
-       max-width:390px override below, which covers that case). Verified
-       via gstack browse at viewport 430x900 (natural height with
-       min-height zeroed: 1151px, matching 1155 - 4 exactly). */
-    min-height: 1151px;
+    /* Mobile floor — LIVE-MEASURED (2026-07-11) at viewport 430x1400
+       (13 sections -> 3/row -> 5 rows), same method as the desktop value
+       above. 1151px (v6) -> 1098px (v8). See design-changes.md. */
+    min-height: 1098px;
   }
 }
 
 @media (max-width: 390px) {
   .binder-cabinet {
-    /* Crossover, RECOMPUTED + RE-MEASURED live (2026-07-11): same 4px
-       crown-replaces-p-4-padding delta as the 480px bucket above. Old
-       value 1579px -> new 1575px (1579 - 4). Formula: 13 sections at
-       2/row = 7 rows; per-row envelope 196px (12px pt-3 + 184px book),
-       row pitch 212px (see .binder-shelf mobile comment) -> shelf
-       content 212*7 + 12px bottom padding = 1496px + borders (1+50) =
-       1547px, + crown-to-shelf offset 12px (was p-4's 16px padding-top)
-       + p-4 (16px) padding-bottom = 1575px. Verified via gstack browse
-       at viewport 375x900 (natural height with min-height zeroed:
-       1575px, matching the formula exactly). Overrides the 1151px value
-       above for this narrower range (same specificity, source order
-       wins). */
-    min-height: 1575px;
+    /* Narrowest-mobile floor — LIVE-MEASURED (2026-07-11) at viewport
+       375x1900 (13 sections -> 2/row -> 7 rows), same method as above.
+       1575px (v6) -> 1522px (v8). Overrides the 1098px value for this
+       narrower range (same specificity, source order wins). See
+       design-changes.md. */
+    min-height: 1522px;
   }
 }
-/* Side uprights (design-brief.md "Open Carcase" §3.1.2/§9, retone +
-   widen): 14px -> 20px (corrects to the 8pt/4pt grid, §3.3 — 14 wasn't a
-   4pt multiple), fill switched from the shelf's own wood-1->wood-2
-   gradient to the new --wood-frame tone (a very tight two-stop gradient,
-   not a second internal highlight/shadow model — the point of
-   --wood-frame is that it's already visually distinct from the shelf
-   face; over-modeling a 20px-wide element risks a busy stripe). This is
-   the "frame vs. shelf-interior" structural read: crown + uprights are
-   one darker/denser wood element, the shelf floor/boards are another,
-   instead of everything being one undifferentiated brown fill. */
+/* Side panels (design-brief.md v8 §3.1.2, rebuilt from "Open Carcase"'s
+   retoned side uprights): 20px -> 8px (matches the cap's thickness — reads
+   as "the same board material, oriented vertically instead of
+   horizontally," reinforcing the one-continuous-body read). Fill: flat
+   --wood-body, the SAME tone as the cap/boards/plinth — no --wood-frame,
+   no gradient-to-black modeling (v8 §2/§6: one continuous material, no
+   frame-vs-interior split). Grain texture is KEPT here (unlike the cap)
+   because the reference (brief §1) explicitly reads the panels as "the
+   same wood tone AND GRAIN as everything else" — material continuity, not
+   a flat cutout. One hard 1px --wood-hi highlight on the inward-facing
+   edge only (same asymmetric convention v6 established — light catching
+   the inner corner, not a symmetric outline). */
 .binder-cabinet::before,
 .binder-cabinet::after {
   content: "";
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 20px;
+  width: 8px;
   background:
     repeating-linear-gradient(
       180deg,
@@ -668,34 +632,63 @@ body {
       var(--grain) 6px,
       transparent 8px
     ),
-    linear-gradient(
-      90deg,
-      var(--wood-frame) 0%,
-      color-mix(in srgb, var(--wood-frame) 85%, black) 100%
-    );
+    var(--wood-body);
   background-blend-mode: overlay, normal;
   pointer-events: none;
   z-index: 1;
 }
 .binder-cabinet::before {
   left: 0;
-  /* Inner bevel highlight on the INWARD-facing edge only (the left
-     upright's right side) — reads as light catching the inner corner
-     where upright meets shelf, not a symmetric outline. */
-  box-shadow: inset -2px 0 0 var(--wood-hi);
+  box-shadow: inset -1px 0 0 var(--wood-hi);
 }
 .binder-cabinet::after {
   right: 0;
-  /* Mirror of ::before: the right upright's inward-facing edge is its
-     left side. */
-  box-shadow: inset 2px 0 0 var(--wood-hi);
+  box-shadow: inset 1px 0 0 var(--wood-hi);
 }
 @media (prefers-color-scheme: dark) {
   .binder-cabinet {
     box-shadow:
-      inset 0 0 48px rgba(0, 0, 0, 0.35),
-      inset 0 2px 8px rgba(0, 0, 0, 0.45);
+      inset 0 0 48px rgba(0, 0, 0, 0.4),
+      inset 0 2px 8px rgba(0, 0, 0, 0.5);
   }
+}
+
+/* --- Base / plinth (design-brief.md v8 §3.1.4/§10.2, new — no precedent
+   in v1-v7). Rendered as the LAST child of `.binder-cabinet` in
+   BinderBookcase.tsx, after `.binder-shelf`. 16px tall (taller than a
+   board — establishes it as a distinct, load-bearing furniture foot, not
+   just another divider); flat --wood-body fill; one hard 2px --wood-hi
+   top highlight where it meets the shelf's closing board.
+   `-mx-7/-mb-4` (mobile) and `sm:-mx-9/sm:-mb-6` (desktop) in the JSX:
+   the `-mb`/`sm:-mb` half cancels the cabinet's own p-4/sm:p-6
+   padding-bottom so the plinth sits flush to the cabinet's bottom edge
+   (same technique the cap uses on top). The `-mx-7`/`sm:-mx-9` half goes
+   FURTHER than flush — it cancels that same padding AND adds an
+   additional 12px of outward bleed per side (mobile: p-4's 16px + 12px =
+   28px = mx-7; desktop: sm:p-6's 24px + 12px = 36px = mx-9), so the
+   plinth flares wider than the cabinet body per the reference's "flared
+   base/plinth, visibly wider than the case body" (brief §1). Named
+   starting point only, per brief §5 RISK 2 — flagged for adjustment after
+   a real screenshot, not treated as final.
+   Drop-shadow is the ONE deliberate soft/blurred exception in this
+   otherwise all-hard-edge system (brief §10.2): a material edge (board
+   meeting board) is a genuine geometric discontinuity and stays hard; a
+   cast/contact shadow (the plinth resting on whatever surface is below
+   the whole cabinet) is inherently soft in real optics. Values per brief
+   §10.2: blur ~= 1.5-2x the plinth's own 16px thickness -> 8px blur,
+   offset 2-3px down, opacity ~=0.4 (within this component's existing
+   0.3-0.5 underside-shadow range). Kept tight/downward-pooled, not a wide
+   ambient halo, so it reads as "resting weight," not a generic floating
+   card (brief §10.3). z-index matches the cap (2) so it stays above the
+   panels at the corner overlap. */
+.binder-cabinet-plinth {
+  height: 16px;
+  background: var(--wood-body);
+  box-shadow:
+    inset 0 2px 0 var(--wood-hi),
+    0 3px 8px rgba(0, 0, 0, 0.4);
+  position: relative;
+  z-index: 2;
 }
 
 /* B3 (`.binder-cabinet-wall`, v2 side walls) intentionally removed (brief

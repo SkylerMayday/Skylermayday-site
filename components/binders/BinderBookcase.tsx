@@ -19,6 +19,14 @@ interface BinderBookcaseProps {
  * asked for; the buggy zero-height side walls are dropped, not fixed —
  * see globals.css).
  *
+ * "Slim Carcase" v8 rebuild (design-brief.md v8 §3.1/§6): the cabinet gains
+ * a second `aria-hidden` sibling div, `.binder-cabinet-plinth`, as the LAST
+ * child (after `.binder-shelf`) — a flared base/foot with no precedent in
+ * v1-v7. The former `.binder-cabinet-crown` is renamed `.binder-cabinet-cap`
+ * (same "plain aria-hidden div, zero client logic" pattern). Still no JS,
+ * no per-item wrappers, no CSS Grid — v7's cubby-grid idea stays fully
+ * abandoned.
+ *
  * Row-chunking decision (§7.5): with book width now fixed/capped (~104px,
  * not a `flex-basis` fraction of the row), pre-splitting into a fixed
  * number of shelf groups (tried first) left large dead wood space on
@@ -42,9 +50,9 @@ export default function BinderBookcase({ binders }: BinderBookcaseProps) {
   }
 
   return (
-    <div className="binder-cabinet relative rounded-xl bg-neutral-50 p-4 dark:bg-neutral-900 sm:p-6">
+    <div className="binder-cabinet relative bg-neutral-50 p-4 dark:bg-neutral-900 sm:p-6">
       <div
-        className="binder-cabinet-crown -mx-4 -mt-4 sm:-mx-6 sm:-mt-6"
+        className="binder-cabinet-cap -mx-4 -mt-4 sm:-mx-6 sm:-mt-6"
         aria-hidden
       />
       <div className="binder-shelf">
@@ -57,6 +65,10 @@ export default function BinderBookcase({ binders }: BinderBookcaseProps) {
           />
         ))}
       </div>
+      <div
+        className="binder-cabinet-plinth -mx-7 -mb-4 sm:-mx-9 sm:-mb-6"
+        aria-hidden
+      />
     </div>
   );
 }
