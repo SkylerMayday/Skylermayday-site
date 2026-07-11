@@ -3,6 +3,9 @@ import {
   fetchBinderFile,
   fetchChangelog,
   computeCompletion,
+  findBinderBySlug,
+  partitionBindersByShelf,
+  POKEDEX_BINDER_ID,
   BindersApiError,
 } from "@/lib/binders";
 import BinderBookcase from "@/components/binders/BinderBookcase";
@@ -46,18 +49,16 @@ export default async function BindersOverviewPage() {
     // failing the whole overview page.
   }
 
-  // Overall = combine every binder's completion; with one binder this
-  // equals computeCompletion(binders[0]). Reuse computeCompletion per
-  // binder and aggregate filled/total (do NOT re-implement slot logic).
-  const overall = binderFile.binders.reduce(
-    (acc, b) => {
-      const c = computeCompletion(b);
-      const filled = acc.filled + c.filled;
-      const total = acc.total + c.total;
-      return { filled, total, pct: total === 0 ? 0 : Math.round((filled / total) * 100) };
-    },
-    { filled: 0, total: 0, pct: 0 }
-  );
+  // Completion bar is Pokédex-only (second-bookshelf spec decision 5):
+  // Card History / Personal Collection aren't dex-completion-shaped data, so
+  // mixing them into one percentage would be meaningless. Reuse the existing
+  // domain helpers — do NOT re-implement slot logic.
+  const pokedexBinder = findBinderBySlug(binderFile, POKEDEX_BINDER_ID);
+  const overall = pokedexBinder
+    ? computeCompletion(pokedexBinder)
+    : { filled: 0, total: 0, pct: 0 };
+
+  const { shelf1, shelf2 } = partitionBindersByShelf(binderFile.binders);
 
   return (
     <div className="flex flex-col gap-8 py-10">
@@ -68,7 +69,16 @@ export default async function BindersOverviewPage() {
 
       <Changelog entries={changelogEntries} />
 
-      <BinderBookcase binders={binderFile.binders} />
+      <BinderBookcase
+        binders={shelf1}
+        heading="Pokédex"
+        emptyMessage="No binders published yet."
+      />
+      <BinderBookcase
+        binders={shelf2}
+        heading="Personal Collection"
+        emptyMessage="More binders coming soon."
+      />
     </div>
   );
 }

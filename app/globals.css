@@ -604,6 +604,47 @@ body {
     min-height: 1522px;
   }
 }
+
+/* --- Empty shelf-2 cabinet CLS reservation (second-bookshelf spec
+   decision 4). Shelf 2 with zero binders has NO wrapping spine rows, so it
+   must NOT inherit shelf 1's 544/1098/1522px tiers — its height is static
+   PER TIER and known (cap + shelf padding + one message line + plinth).
+
+   Compound selector `.binder-cabinet.binder-cabinet-empty` (specificity
+   0,2,0) so it beats ALL three base `.binder-cabinet` min-height rules
+   (0,1,0) regardless of source order — including the ones inside the
+   max-width:480px / max-width:390px media queries above.
+
+   LIVE-MEASURED (2026-07-11) via gstack browse against the production
+   /ptcg-binders page: injected the exact built empty-shelf-2 markup (cap +
+   shelf with single centered message + plinth, identical classNames to
+   BinderBookcase.tsx's empty branch) into the live page with a
+   `min-height: 0 !important` override on `.binder-cabinet-empty` so the
+   read wasn't self-referential, then read `getBoundingClientRect().height`
+   on the cabinet element at several viewport widths.
+
+   CONTRARY TO THE SOURCE SPEC'S ASSUMPTION ("no row-wrapping content ...
+   likely doesn't [vary]"): the height DOES vary by breakpoint -- NOT
+   because of anything in `.binder-cabinet` itself, but because
+   `.binder-shelf`'s OWN `max-width: 480px` rule (above, in this file)
+   changes its vertical padding (24px/14px -> 16px/12px), a 10px swing that
+   has nothing to do with spine wrapping. Measured 84px at >480px width
+   (checked 481, 550, 639, 1280, 1920 -- all identical) and 74px at
+   <=480px width (checked 375, 390, 391, 430, 480 -- all identical,
+   confirming the shelf's own <=480 tier is the only breakpoint that
+   matters here; no third tier needed since `.binder-shelf` has no
+   separate <=390px rule). Two tiers, not shelf 1's three -- correct given
+   the actual dependency graph, not estimated. */
+.binder-cabinet.binder-cabinet-empty {
+  min-height: 84px;
+}
+
+@media (max-width: 480px) {
+  .binder-cabinet.binder-cabinet-empty {
+    min-height: 74px;
+  }
+}
+
 /* Side panels (design-brief.md v8 §3.1.2, rebuilt from "Open Carcase"'s
    retoned side uprights): 20px -> 8px (matches the cap's thickness — reads
    as "the same board material, oriented vertically instead of

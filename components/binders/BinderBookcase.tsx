@@ -1,10 +1,13 @@
 import type { Binder } from "@/lib/binders";
 import { computeSectionCompletion, sectionNameToSlug } from "@/lib/binders";
 import BinderSectionSpine from "./BinderSectionSpine";
-import EmptyState from "@/components/ui/EmptyState";
 
 interface BinderBookcaseProps {
   binders: Binder[];
+  /** Plain <h2> label rendered above this cabinet. "Pokédex" / "Personal Collection". */
+  heading: string;
+  /** One-line message shown centered inside the shelf when this group yields zero spines. */
+  emptyMessage: string;
 }
 
 /**
@@ -39,36 +42,64 @@ interface BinderBookcaseProps {
  * to ~9-10 per row on desktop, ~4-5 on tablet, ~3 on mobile, with no
  * empty trailing space unless the very last row is partial (unavoidable
  * and visually normal for any wrapping shelf).
+ *
+ * Second-bookshelf rebuild (docs/ptcg-second-bookshelf-spec.md): the
+ * component is now single-cabinet-per-instance — `page.tsx` partitions
+ * `binder.json`'s binders by shelf membership (`partitionBindersByShelf`)
+ * and renders this component once per shelf, passing each group's binders
+ * plus a `heading` ("Pokédex" / "Personal Collection") and an `emptyMessage`
+ * as props. The populated branch is byte-identical to the pre-rebuild
+ * markup (same cap/shelf/plinth structure and spine map). The old
+ * page-level `EmptyState` early-return is replaced with an in-cabinet empty
+ * branch: full cabinet chrome (cap, shelf, plinth) stays, but the shelf
+ * interior shows a single centered message instead of spines, and the
+ * cabinet gains the `binder-cabinet-empty` modifier class that drives the
+ * CLS min-height reservation in globals.css. Stays a zero-JS server
+ * component throughout — no client directive, no hooks, no handlers.
  */
-export default function BinderBookcase({ binders }: BinderBookcaseProps) {
+export default function BinderBookcase({
+  binders,
+  heading,
+  emptyMessage,
+}: BinderBookcaseProps) {
   const spines = binders.flatMap((binder) =>
     binder.sections.map((section) => ({ binderId: binder.id, section }))
   );
-
-  if (spines.length === 0) {
-    return <EmptyState message="No binders published yet." />;
-  }
+  const isEmpty = spines.length === 0;
 
   return (
-    <div className="binder-cabinet relative bg-neutral-50 p-4 dark:bg-neutral-900 sm:p-6">
+    <section className="flex flex-col gap-4">
+      <h2 className="text-lg font-semibold">{heading}</h2>
       <div
-        className="binder-cabinet-cap -mx-4 -mt-4 sm:-mx-6 sm:-mt-6"
-        aria-hidden
-      />
-      <div className="binder-shelf">
-        {spines.map(({ binderId, section }) => (
-          <BinderSectionSpine
-            key={`${binderId}-${sectionNameToSlug(section.name)}`}
-            binderId={binderId}
-            section={section}
-            completion={computeSectionCompletion(section)}
-          />
-        ))}
+        className={`binder-cabinet relative bg-neutral-50 p-4 dark:bg-neutral-900 sm:p-6${
+          isEmpty ? " binder-cabinet-empty" : ""
+        }`}
+      >
+        <div
+          className="binder-cabinet-cap -mx-4 -mt-4 sm:-mx-6 sm:-mt-6"
+          aria-hidden
+        />
+        <div className="binder-shelf">
+          {isEmpty ? (
+            <p className="w-full self-center text-center text-sm text-neutral-500 dark:text-neutral-400">
+              {emptyMessage}
+            </p>
+          ) : (
+            spines.map(({ binderId, section }) => (
+              <BinderSectionSpine
+                key={`${binderId}-${sectionNameToSlug(section.name)}`}
+                binderId={binderId}
+                section={section}
+                completion={computeSectionCompletion(section)}
+              />
+            ))
+          )}
+        </div>
+        <div
+          className="binder-cabinet-plinth -mx-7 -mb-4 sm:-mx-9 sm:-mb-6"
+          aria-hidden
+        />
       </div>
-      <div
-        className="binder-cabinet-plinth -mx-7 -mb-4 sm:-mx-9 sm:-mb-6"
-        aria-hidden
-      />
-    </div>
+    </section>
   );
 }

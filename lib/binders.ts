@@ -200,6 +200,48 @@ export function findBinderBySlug(
 export const SLOTS_PER_PAGE = 9;
 
 /**
+ * The single binder id whose completion drives the page-level
+ * "Pokédex completion" bar. Kept separate from SHELF_1_BINDER_IDS on
+ * purpose: the completion bar is dex-shaped (dexNumber / 1025-total) and is
+ * meaningful ONLY for the pokedex binder — see second-bookshelf spec
+ * decision 5. Card History / Personal Collection are not dex-completion data
+ * and must not be mixed into this percentage.
+ */
+export const POKEDEX_BINDER_ID = "pokedex";
+
+/**
+ * Explicit ALLOWLIST (not a denylist) of binder ids that render on shelf 1
+ * (the "Pokédex" cabinet). Any binder id NOT in this list — including ids
+ * that don't exist in binder.json yet — renders on shelf 2 ("Personal
+ * Collection"). Safe default: an unexpected future binder id never silently
+ * vanishes, it lands on shelf 2 until someone decides it belongs on shelf 1.
+ * See second-bookshelf spec decision 1.
+ */
+export const SHELF_1_BINDER_IDS: readonly string[] = [POKEDEX_BINDER_ID, "cardHistory"];
+
+/**
+ * Partitions binders into the two on-page shelves by SHELF_1_BINDER_IDS.
+ * Mutually exclusive and exhaustive: every binder lands in exactly one group
+ * (id in the allowlist -> shelf1, else -> shelf2). Preserves input order
+ * within each group. Pure — safe to call in a server component.
+ */
+export function partitionBindersByShelf(binders: Binder[]): {
+  shelf1: Binder[];
+  shelf2: Binder[];
+} {
+  const shelf1: Binder[] = [];
+  const shelf2: Binder[] = [];
+  for (const binder of binders) {
+    if (SHELF_1_BINDER_IDS.includes(binder.id)) {
+      shelf1.push(binder);
+    } else {
+      shelf2.push(binder);
+    }
+  }
+  return { shelf1, shelf2 };
+}
+
+/**
  * Converts a section name into a URL-safe kebab-case slug.
  * "Generation I" -> "generation-i", "VMax" -> "vmax",
  * "Regional Variants" -> "regional-variants".
