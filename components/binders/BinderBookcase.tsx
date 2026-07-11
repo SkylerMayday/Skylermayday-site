@@ -43,6 +43,10 @@ export default function BinderBookcase({ binders }: BinderBookcaseProps) {
 
   return (
     <div className="binder-cabinet relative rounded-xl bg-neutral-50 p-4 dark:bg-neutral-900 sm:p-6">
+      <div
+        className="binder-cabinet-crown -mx-4 -mt-4 sm:-mx-6 sm:-mt-6"
+        aria-hidden
+      />
       <div className="binder-shelf">
         {spines.map(({ binderId, section }) => (
           <BinderSectionSpine
