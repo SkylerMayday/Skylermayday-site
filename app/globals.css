@@ -483,6 +483,42 @@ body {
   box-shadow:
     inset 0 0 40px rgba(0, 0, 0, 0.12),
     inset 0 2px 6px rgba(0, 0, 0, 0.15);
+  /* CLS mitigation (2026-07-11, speculative): a same-tick layout shift
+     (~40ms after first paint, CLS 0.138) was measured live on
+     /ptcg-binders — the shelf's real height wasn't reserved before this
+     component's CSS/layout settled, so the footer jumped down once it
+     did. min-height reserves the SHORTEST plausible rendered height so
+     the residual shift (if any) stays same-direction/smaller, never
+     reversed — see the >480px value's derivation below.
+     Widest-viewport floor: 13 sections at ~9-10/row (BinderBookcase.tsx
+     comment) = 2 rows minimum. Per-row envelope 228px (12px Link pt-3 +
+     216px book, see .binder-shelf comment) → shelf content 252*2 = 504px
+     + shelf bottom padding 14px + borders (1px top + 50px bottom) = 569px
+     shelf height, + this cabinet's own sm:p-6 (24px) padding top/bottom
+     = 617px. Approximate, not exact — narrower-than-desktop widths in
+     this bucket will still under-reserve (more rows than 2), which is
+     the deliberately safe direction. Recompute if section count, spine
+     size, or shelf padding/border change. */
+  min-height: 617px;
+}
+
+@media (max-width: 480px) {
+  .binder-cabinet {
+    /* Mobile floor, MEASURED not estimated (2026-07-11): real rendered
+       height splits within this single 480px bucket — 428-480px widths
+       fit 3/row (13 sections -> 5 rows, 1155px real height, this value);
+       320-375px widths (the more common iPhone range) only fit 2/row (7
+       rows, 1579px real height). Using 1155 keeps this bucket's safe
+       (under-reserve) direction at 428-480px exactly, but under-reserves
+       by ~424px at 320-375px — the residual shift there is smaller than
+       unfixed, not eliminated. A tighter fix would need a second
+       breakpoint (e.g. ~400px) not aligned with this file's existing
+       single 480px mobile threshold; not done — diminishing return
+       weighed against more magic-number coupling in this already-fragile
+       file. Revisit only if CLS at narrow mobile widths still matters
+       after this ships. */
+    min-height: 1155px;
+  }
 }
 .binder-cabinet::before,
 .binder-cabinet::after {
