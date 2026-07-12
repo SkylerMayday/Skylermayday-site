@@ -53,11 +53,6 @@ export const siteConfig = {
       handle: "@skylermayday",
       url: "https://youtube.com/@skylermayday",
     },
-    {
-      platform: "X (Twitter)",
-      handle: "@SkylerMayday",
-      url: "https://x.com/SkylerMayday",
-    },
   ] satisfies PlatformLink[],
 
   schedule: [
