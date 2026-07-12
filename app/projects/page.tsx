@@ -1,0 +1,103 @@
+import type { Metadata } from "next";
+import { siteConfig } from "@/data/site-config";
+import { fetchBotStatus } from "@/lib/discord";
+import ProjectBadge from "@/components/ui/ProjectBadge";
+import ProjectCard from "@/components/projects/ProjectCard";
+
+export const metadata: Metadata = {
+  title: `Projects — ${siteConfig.brandName}`,
+};
+
+export default async function ProjectsPage() {
+  const botStatus = await fetchBotStatus();
+
+  return (
+    <div className="flex flex-col gap-8 py-10">
+      <h1 className="text-3xl font-bold">Projects</h1>
+
+      <section className="flex flex-col gap-4">
+        <h2 className="text-xl font-semibold">Current Projects</h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <ProjectCard
+            title="Packs of Noods"
+            description="Food IRL stream series with draftpicked — exploring Singapore food spots and opening Pokémon TCG packs at the table. #teamfatnoods."
+            badges={["stream-content"]}
+            href="/projects/packs-of-noods"
+          />
+
+          <ProjectCard
+            title="Pokédex Binder"
+            description="Android app plus this site's binder showcase tracking the living-Pokédex TCG collection — and my personal collection binders."
+            badges={["stream-content", "vibe-coded"]}
+            href="/projects/ptcg-binders"
+          />
+
+          <ProjectCard
+            title="Stream Analyser"
+            description="Analyse a VOD's chat, audio, and stream quality."
+            badges={["vibe-coded"]}
+            href="/projects/stream-analyser"
+          />
+
+          {/* Discord bot live-status card — bespoke (live widget), not a ProjectCard. */}
+          <div className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-6 dark:border-neutral-800">
+            <div className="flex flex-wrap gap-1.5">
+              <ProjectBadge variant="vibe-coded" />
+            </div>
+            <div className="flex items-center gap-3">
+              {botStatus.online && botStatus.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={botStatus.avatarUrl}
+                  alt="SkylerMayday Discord bot avatar"
+                  width={40}
+                  height={40}
+                  className="rounded-full"
+                />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-neutral-200 dark:bg-neutral-700" />
+              )}
+              <h3 className="text-lg font-semibold">SkylerMayday Discord Bot</h3>
+            </div>
+            {botStatus.unavailable ? (
+              <p className="text-sm text-neutral-400">Status unavailable right now.</p>
+            ) : (
+              <p className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+                <span
+                  className={`inline-block h-2.5 w-2.5 rounded-full ${
+                    botStatus.online ? "bg-green-500" : "bg-neutral-400"
+                  }`}
+                  aria-hidden="true"
+                />
+                {botStatus.online ? "Online" : "Offline"}
+              </p>
+            )}
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              The SkylerMayday Discord bot, live in my server.
+            </p>
+          </div>
+
+          <ProjectCard
+            title="MobileStream"
+            description="Android app that streams a phone's camera or screen over RTMP and auto-drives OBS scene switching for IRL streams — my replacement for NOALBS."
+            badges={["vibe-coded"]}
+          />
+        </div>
+      </section>
+
+      <section id="past" className="flex flex-col gap-4">
+        <h2 className="text-xl font-semibold">Past Projects</h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <ProjectCard
+            title="Games Expedition"
+            description="Game-showcase channel exploring what makes games worth playing. Ran Nov 2019 – Nov 2024: 72 archived episodes across three shows — Main Show, Space'd Out, and Uncharted — with NeppyNepstar, FinalPhantasia, MooseyMus and crew. Started on Mixer, moved to Twitch, now archived on YouTube."
+            badges={["stream-content"]}
+            href="https://www.youtube.com/@GamesExpedition"
+            external
+            muted
+          />
+        </div>
+      </section>
+    </div>
+  );
+}

@@ -10,7 +10,7 @@ export const navLinks: NavLink[] = [
   { label: "About", href: "/about" },
   { label: "Content", href: "/content" },
   // Shop hidden from nav pending re-enable — /shop route still live, just unlinked.
-  { label: "Tools", href: "/tools" },
-  { label: "PTCG Binders", href: "/ptcg-binders" },
+  { label: "Projects", href: "/projects" },
+  { label: "PTCG Binders", href: "/projects/ptcg-binders" },
   { label: "Contact", href: "/contact" },
 ];

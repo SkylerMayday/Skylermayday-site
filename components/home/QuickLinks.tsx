@@ -13,9 +13,9 @@ const QUICK_LINKS: QuickLink[] = [
     href: "/shop",
   },
   {
-    title: "Tools",
-    description: "Stream Analyser and the Pokédex Binder tracker.",
-    href: "/tools",
+    title: "Projects",
+    description: "Everything I build and run — current projects and past.",
+    href: "/projects",
   },
   {
     title: "Contact",

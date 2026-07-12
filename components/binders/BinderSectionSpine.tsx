@@ -70,7 +70,7 @@ export default function BinderSectionSpine({
 
   return (
     <Link
-      href={`/ptcg-binders/${binderId}/${sectionNameToSlug(section.name)}`}
+      href={`/projects/ptcg-binders/${binderId}/${sectionNameToSlug(section.name)}`}
       aria-label={`${section.name}, ${completion.pct}% complete (${completion.filled} of ${completion.total})`}
       /* binder-scene: the Link owns the perspective + raised eye (see
          globals.css — the top face is only visible from above). pt-3 =

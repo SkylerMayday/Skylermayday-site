@@ -105,6 +105,32 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Tools → Projects repurpose (2026-07-12): both route trees physically moved
+  // under /projects/*; every old URL 308-redirects so no shared link breaks.
+  // No source starts with /projects, so the new tree is never shadowed.
+  async redirects() {
+    return [
+      { source: "/tools", destination: "/projects", permanent: true },
+      {
+        source: "/tools/stream-analyser",
+        destination: "/projects/stream-analyser",
+        permanent: true,
+      },
+      { source: "/ptcg-binders", destination: "/projects/ptcg-binders", permanent: true },
+      {
+        source: "/ptcg-binders/:binderSlug/:sectionSlug",
+        destination: "/projects/ptcg-binders/:binderSlug/:sectionSlug",
+        permanent: true,
+      },
+      // Defensive: no single-segment binder page exists today (both sides 404),
+      // but this keeps a stray shared link off the dead old prefix.
+      {
+        source: "/ptcg-binders/:binderSlug",
+        destination: "/projects/ptcg-binders/:binderSlug",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

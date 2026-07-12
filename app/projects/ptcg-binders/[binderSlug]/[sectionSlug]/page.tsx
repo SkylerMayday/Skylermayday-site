@@ -109,7 +109,7 @@ export default async function BinderSectionPage({
   return (
     <div className="flex flex-col gap-8 py-10">
       <Link
-        href="/ptcg-binders"
+        href="/projects/ptcg-binders"
         className="text-sm font-medium text-neutral-500 transition hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
       >
         &larr; Back to Binders

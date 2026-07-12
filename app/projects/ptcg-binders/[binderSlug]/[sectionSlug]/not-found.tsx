@@ -8,7 +8,7 @@ export default function SectionNotFound() {
         This section doesn&apos;t exist or hasn&apos;t been published yet.
       </p>
       <Link
-        href="/ptcg-binders"
+        href="/projects/ptcg-binders"
         className="rounded bg-neutral-900 px-4 py-2 font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
       >
         Back to Binders
