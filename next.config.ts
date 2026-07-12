@@ -52,6 +52,19 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
   },
+  // HSTS explicitly disabled (Skyler, 2026-07-12): this site's Strict-Transport-Security
+  // header was previously injected by Vercel's platform (max-age=63072000, not set by
+  // this app), which made cert-substitution MITM interception (e.g. a mobile carrier's
+  // content-filter proxy) a hard, unrecoverable block in-browser instead of a normal
+  // cert-warning-with-override page. max-age=0 (not omission) is deliberate — this is
+  // the RFC 6797 §6.1.1 signal that tells a browser to actively forget any HSTS policy
+  // it already cached for this host, not just stop sending a new one. Only takes effect
+  // for a given visitor once their browser receives this over a non-intercepted
+  // connection — does not retroactively unblock an already-cached policy while still on
+  // an intercepting network. Reversible: remove this entry (or set a real max-age) and
+  // redeploy; this domain was never HSTS-preloaded, so there's no hardcoded-in-Chrome
+  // state to fight either way.
+  { key: "Strict-Transport-Security", value: "max-age=0" },
 ];
 
 const nextConfig: NextConfig = {
