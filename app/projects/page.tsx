@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/data/site-config";
+import { discordCommandGroups } from "@/data/discord-commands";
 import { fetchBotStatus } from "@/lib/discord";
 import ProjectBadge from "@/components/ui/ProjectBadge";
 import ProjectCard from "@/components/projects/ProjectCard";
@@ -75,6 +76,47 @@ export default async function ProjectsPage() {
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
               The SkylerMayday Discord bot, live in my server.
             </p>
+            {botStatus.inviteUrl && (
+              <a
+                href={botStatus.inviteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-fit items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500"
+              >
+                Join the Discord
+              </a>
+            )}
+            <details className="mt-1 text-sm">
+              <summary className="cursor-pointer select-none font-medium text-neutral-700 dark:text-neutral-300">
+                What everyone can use
+              </summary>
+              <dl className="mt-3 flex flex-col gap-3">
+                {discordCommandGroups.map((g) => (
+                  <div key={g.group} className="flex flex-col gap-1">
+                    <dt className="font-medium text-neutral-600 dark:text-neutral-400">
+                      {g.group}
+                    </dt>
+                    <dd className="flex flex-col gap-1">
+                      {g.note && (
+                        <span className="text-neutral-500 dark:text-neutral-400">{g.note}</span>
+                      )}
+                      {g.commands.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {g.commands.map((c) => (
+                            <code
+                              key={c}
+                              className="rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200"
+                            >
+                              {c}
+                            </code>
+                          ))}
+                        </div>
+                      )}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </details>
           </div>
 
           <ProjectCard

@@ -31,6 +31,7 @@ interface WidgetMember {
 interface WidgetResponse {
   id: string;
   name: string;
+  instant_invite: string | null; // top-level; Discord returns null when no invite channel is configured
   members: WidgetMember[];
 }
 
@@ -45,6 +46,10 @@ export interface BotStatus {
   // true when the widget itself couldn't be read (disabled / network / non-200).
   // The card renders an "unavailable" state rather than crashing the page.
   unavailable: boolean;
+  // The server's instant invite URL from the widget's top-level `instant_invite`
+  // field, available whenever the widget is readable (independent of bot presence).
+  // null when the widget has no invite channel configured OR the widget is unavailable.
+  inviteUrl: string | null;
 }
 
 /**
@@ -65,6 +70,7 @@ export async function fetchBotStatus(): Promise<BotStatus> {
     avatarUrl: null,
     presence: null,
     unavailable: false,
+    inviteUrl: null,
   };
 
   let response: Response;
@@ -94,10 +100,15 @@ export async function fetchBotStatus(): Promise<BotStatus> {
     return { ...offlineDefault, unavailable: true };
   }
 
+  // Top-level field, present whenever the widget is readable — independent of
+  // whether the bot appears in members[]. May be undefined on older payloads.
+  const inviteUrl = data.instant_invite ?? null;
+
   const bot = data.members?.find((m) => m.username === BOT_USERNAME);
   if (!bot) {
     // Not listed ⇒ offline (Discord omits offline members). Not an error.
-    return offlineDefault;
+    // The invite still applies — the widget itself was readable.
+    return { ...offlineDefault, inviteUrl };
   }
 
   return {
@@ -105,5 +116,6 @@ export async function fetchBotStatus(): Promise<BotStatus> {
     avatarUrl: bot.avatar_url ?? null,
     presence: bot.status,
     unavailable: false,
+    inviteUrl,
   };
 }

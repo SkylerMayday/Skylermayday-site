@@ -10,12 +10,20 @@ export default function AboutPage() {
     <div className="flex flex-col gap-10 py-10">
       <section className="flex flex-col gap-4">
         <h1 className="text-3xl font-bold">About</h1>
-        <p className="text-neutral-700 dark:text-neutral-300">{siteConfig.aboutBio}</p>
+        {siteConfig.aboutBio.map((para, i) => (
+          <p key={i} className="text-neutral-700 dark:text-neutral-300">
+            {para}
+          </p>
+        ))}
       </section>
 
       <section className="flex flex-col gap-4">
         <h2 className="text-xl font-semibold">Brand Story</h2>
-        <p className="text-neutral-700 dark:text-neutral-300">{siteConfig.brandStory}</p>
+        {siteConfig.brandStory.map((para, i) => (
+          <p key={i} className="text-neutral-700 dark:text-neutral-300">
+            {para}
+          </p>
+        ))}
       </section>
 
       <section className="flex flex-col gap-4">
