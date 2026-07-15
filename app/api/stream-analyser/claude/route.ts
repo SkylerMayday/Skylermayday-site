@@ -109,8 +109,35 @@ export async function POST(request: Request) {
 
   const upstreamData = await upstream.json();
   if (!upstream.ok) {
+    // Logged server-side (Vercel function logs) so a failure is diagnosable
+    // from the dashboard instead of requiring a client-side network-tab
+    // inspection to figure out which of {rate limit, credit exhaustion,
+    // malformed request} actually happened.
+    console.error(
+      `[stream-analyser/claude] upstream ${upstream.status}:`,
+      JSON.stringify(upstreamData)
+    );
+
+    // Anthropic returns credit exhaustion as a 400 invalid_request_error
+    // whose message names the credit balance — distinguish it from other
+    // 400s (bad request shape) and from 429 (actual rate limiting) so the
+    // client can show an accurate reason instead of one generic message.
+    const anthropicMessage =
+      typeof upstreamData === "object" &&
+      upstreamData !== null &&
+      "error" in upstreamData &&
+      typeof (upstreamData as { error?: { message?: unknown } }).error?.message === "string"
+        ? (upstreamData as { error: { message: string } }).error.message
+        : "";
+    const isCreditExhaustion =
+      upstream.status === 400 && /credit balance/i.test(anthropicMessage);
+
     return NextResponse.json(
-      { ok: false, error: "upstream", detail: upstreamData },
+      {
+        ok: false,
+        error: isCreditExhaustion ? "insufficient_credits" : "upstream",
+        detail: upstreamData,
+      },
       { status: upstream.status }
     );
   }

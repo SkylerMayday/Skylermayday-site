@@ -15,6 +15,18 @@ export const CLAUDE_MODEL = "claude-sonnet-4-6";
 
 const CLAUDE_ROUTE = "/api/stream-analyser/claude";
 
+// Maps the route's internal error codes (app/api/stream-analyser/claude/route.ts)
+// to a message safe to show a site visitor — the raw codes ("insufficient_credits",
+// "upstream") aren't meaningful outside this codebase and shouldn't leak into
+// AiCard's error notice verbatim.
+const FRIENDLY_ERROR_MESSAGES: Record<string, string> = {
+  insufficient_credits: "AI is temporarily unavailable — try again later.",
+  rate_limited: "AI is rate-limited — try again in a bit.",
+  not_configured: "AI is temporarily unavailable — try again later.",
+  upstream: "AI is temporarily unavailable — try again later.",
+  validation: "AI request was invalid.",
+};
+
 interface ClaudeContentBlock {
   type: string;
   text?: string;
@@ -33,14 +45,15 @@ export async function callClaude(system: string, user: string, maxTokens: number
   });
 
   if (!res.ok) {
-    let msg: string | undefined;
+    let code: string | undefined;
     try {
       const body = (await res.json()) as { error?: string };
-      msg = body.error;
+      code = body.error;
     } catch {
-      msg = await res.text();
+      code = await res.text();
     }
-    throw new Error(msg || `HTTP ${res.status}`);
+    const friendly = code ? FRIENDLY_ERROR_MESSAGES[code] : undefined;
+    throw new Error(friendly ?? code ?? `HTTP ${res.status}`);
   }
 
   const data = (await res.json()) as ClaudeMessageResponse;
