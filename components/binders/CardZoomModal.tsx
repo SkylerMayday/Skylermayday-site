@@ -3,10 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
+import Badge from "@/components/ui/Badge";
 
 interface CardZoomModalProps {
   imageUrl: string; // non-null; CardSlot only mounts this when the slot is filled
   slotName: string; // used for the accessible label + image alt + error fallback text
+  language: string; // slot.language; badge shown only when !== "EN"
+  remarks: string | null; // slot.remarks; block shown only when non-empty after trim
   onClose: () => void; // called by ALL three close paths; CardSlot's handler restores focus
 }
 
@@ -19,6 +22,8 @@ interface CardZoomModalProps {
 export default function CardZoomModal({
   imageUrl,
   slotName,
+  language,
+  remarks,
   onClose,
 }: CardZoomModalProps) {
   const [imageError, setImageError] = useState(false); // mirrors CardSlot's onError pattern
@@ -145,8 +150,14 @@ export default function CardZoomModal({
         role="dialog"
         aria-modal="true"
         aria-label={`${slotName} — enlarged card image`}
-        className="card-zoom-figure relative flex items-center justify-center"
+        className="card-zoom-figure relative flex max-h-[92vh] flex-col items-center justify-center gap-3 overflow-y-auto"
       >
+        {language !== "EN" && (
+          <span className="pointer-events-none absolute left-2 top-2 z-[55]">
+            <Badge variant="info">{language}</Badge>
+          </span>
+        )}
+
         {imageError ? (
           <div className="flex flex-col items-center justify-center gap-2 rounded bg-neutral-900 p-8 text-center text-neutral-300">
             <span className="text-sm font-semibold">{slotName}</span>
@@ -163,6 +174,12 @@ export default function CardZoomModal({
             onError={() => setImageError(true)}
             priority
           />
+        )}
+
+        {remarks !== null && remarks.trim().length > 0 && (
+          <p className="max-w-[92vw] whitespace-pre-line rounded bg-neutral-900/90 px-4 py-3 text-left text-sm text-neutral-200">
+            {remarks.trim()}
+          </p>
         )}
       </div>
     </div>,

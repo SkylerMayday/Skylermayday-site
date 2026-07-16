@@ -17,6 +17,9 @@ export interface BinderSlot {
   slotId: string;
   cardId: string | null; // absent in raw JSON when empty -> normalized to null
   imageUrl: string | null; // absent when empty -> normalized to null
+  language: string; // default "EN"; non-EN codes: JA KO ZH FR DE IT ES
+  remarks: string | null; // nullable free-text note; null when absent
+  isLocked: boolean; // visual marker only on this site; default false
 }
 
 export interface BinderSection {
@@ -73,13 +76,16 @@ export interface BinderCompletion {
   pct: number;
 }
 
-interface RawBinderSlot {
+export interface RawBinderSlot {
   dexNumber: number;
   slotName: string;
   slotType: string;
   slotId: string;
   cardId?: string | null;
   imageUrl?: string | null;
+  language?: string | null;
+  remarks?: string | null;
+  isLocked?: boolean;
 }
 
 interface RawBinderFile {
@@ -95,7 +101,19 @@ interface RawBinderFile {
   }>;
 }
 
-function normalizeSlot(raw: RawBinderSlot): BinderSlot {
+export function normalizeSlot(raw: RawBinderSlot): BinderSlot {
+  // Guarded default, not a bare `raw.language ?? "EN"`: `??` only catches
+  // null/undefined, so a malformed empty or whitespace-only `language`
+  // string would survive and — since the modal's guard is
+  // `language !== "EN"` — render an empty blue badge. Coercing blank ->
+  // "EN" closes that hole. Trimming also strips incidental whitespace from
+  // a real code. Language-code comparison downstream is case-sensitive by
+  // design: upstream always publishes uppercase codes ("EN", "JA", …), so
+  // no runtime case-folding is applied here.
+  const language =
+    typeof raw.language === "string" && raw.language.trim().length > 0
+      ? raw.language.trim()
+      : "EN";
   return {
     dexNumber: raw.dexNumber,
     slotName: raw.slotName,
@@ -103,6 +121,9 @@ function normalizeSlot(raw: RawBinderSlot): BinderSlot {
     slotId: raw.slotId,
     cardId: raw.cardId ?? null,
     imageUrl: raw.imageUrl ?? null,
+    language,
+    remarks: raw.remarks ?? null, // stored raw; render-side trims for the emptiness check
+    isLocked: raw.isLocked ?? false,
   };
 }
 

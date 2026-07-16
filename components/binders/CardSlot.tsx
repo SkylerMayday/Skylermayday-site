@@ -46,7 +46,7 @@ export default function CardSlot({ slot }: CardSlotProps) {
         ref={triggerRef}
         type="button"
         onClick={() => setIsZoomOpen(true)}
-        aria-label={`View ${slot.slotName} enlarged`}
+        aria-label={`View ${slot.slotName} enlarged${slot.isLocked ? " (locked)" : ""}`}
         title={slot.slotName}
         className="group relative flex aspect-[5/7] w-full flex-col items-center justify-center overflow-hidden rounded border border-neutral-200 bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:border-neutral-800 dark:bg-neutral-900"
       >
@@ -58,12 +58,26 @@ export default function CardSlot({ slot }: CardSlotProps) {
           className="object-contain"
           onError={() => setImageError(true)}
         />
+
+        {slot.isLocked && (
+          <span
+            className="pointer-events-none absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2}>
+              <rect x="5" y="11" width="14" height="9" rx="2" strokeLinejoin="round" />
+              <path d="M8 11V8a4 4 0 0 1 8 0v3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        )}
       </button>
 
       {isZoomOpen && (
         <CardZoomModal
           imageUrl={slot.imageUrl as string}
           slotName={slot.slotName}
+          language={slot.language}
+          remarks={slot.remarks}
           onClose={handleZoomClose}
         />
       )}
