@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   validate,
   MAX_NAME_LENGTH,
+  MAX_EMAIL_LENGTH,
   MAX_SUBJECT_LENGTH,
   MAX_MESSAGE_LENGTH,
   type ContactRequestBody,
@@ -95,17 +96,18 @@ describe("validate", () => {
       expect(data).toBeNull();
     });
 
-    // F1 lock: email length is capped by MAX_NAME_LENGTH, not a dedicated
-    // MAX_EMAIL_LENGTH — this is a copy-paste smell flagged for Skyler
-    // (see .pipeline/changes.md Findings), not an endorsement. This test
-    // asserts CURRENT behavior only, so a future fix doesn't regress silently.
-    it(`length exactly MAX_NAME_LENGTH (${MAX_NAME_LENGTH}) is OK (F1: reuses name's cap)`, () => {
-      const { errors } = validate(validBody({ email: emailOfLength(MAX_NAME_LENGTH) }));
+    // F1 (2026-07-16): previously email length was capped by MAX_NAME_LENGTH,
+    // a copy-paste coupling flagged for Skyler (see .pipeline/changes.md
+    // Findings). Fixed same day with a dedicated MAX_EMAIL_LENGTH (254, RFC
+    // 5321's practical max) so a future change to the name cap can't
+    // silently change email validation too.
+    it(`length exactly MAX_EMAIL_LENGTH (${MAX_EMAIL_LENGTH}) is OK`, () => {
+      const { errors } = validate(validBody({ email: emailOfLength(MAX_EMAIL_LENGTH) }));
       expect(errors).not.toContain("email");
     });
 
-    it("length MAX_NAME_LENGTH + 1 produces an email error (F1: reuses name's cap)", () => {
-      const { errors } = validate(validBody({ email: emailOfLength(MAX_NAME_LENGTH + 1) }));
+    it("length MAX_EMAIL_LENGTH + 1 produces an email error", () => {
+      const { errors } = validate(validBody({ email: emailOfLength(MAX_EMAIL_LENGTH + 1) }));
       expect(errors).toContain("email");
     });
   });

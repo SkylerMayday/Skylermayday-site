@@ -9,6 +9,7 @@
 // called for exporting directly from route.ts).
 
 export const MAX_NAME_LENGTH = 200;
+export const MAX_EMAIL_LENGTH = 254; // RFC 5321 practical max (64 local + '@' + 255 domain, capped in practice)
 export const MAX_SUBJECT_LENGTH = 300;
 export const MAX_MESSAGE_LENGTH = 5000;
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -37,7 +38,7 @@ export function validate(body: ContactRequestBody): { errors: string[]; data: Va
   const message = typeof body.message === "string" ? body.message.trim() : "";
 
   if (!name || name.length > MAX_NAME_LENGTH) errors.push("name");
-  if (!email || !EMAIL_PATTERN.test(email) || email.length > MAX_NAME_LENGTH) errors.push("email");
+  if (!email || !EMAIL_PATTERN.test(email) || email.length > MAX_EMAIL_LENGTH) errors.push("email");
   if (subjectRaw.length > MAX_SUBJECT_LENGTH) errors.push("subject");
   if (!message || message.length > MAX_MESSAGE_LENGTH) errors.push("message");
 
