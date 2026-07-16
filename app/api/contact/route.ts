@@ -2,56 +2,9 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { env, hasResendEnv, hasDiscordEnv } from "@/lib/env";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { validate, type ContactRequestBody, type ValidatedContact } from "@/lib/contact-validation";
 
 export const runtime = "nodejs";
-
-const MAX_NAME_LENGTH = 200;
-const MAX_SUBJECT_LENGTH = 300;
-const MAX_MESSAGE_LENGTH = 5000;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-interface ContactRequestBody {
-  name?: unknown;
-  email?: unknown;
-  subject?: unknown;
-  message?: unknown;
-  company?: unknown; // honeypot — must be empty
-}
-
-interface ValidatedContact {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-}
-
-function validate(body: ContactRequestBody): { errors: string[]; data: ValidatedContact | null } {
-  const errors: string[] = [];
-
-  const name = typeof body.name === "string" ? body.name.trim() : "";
-  const email = typeof body.email === "string" ? body.email.trim() : "";
-  const subjectRaw = typeof body.subject === "string" ? body.subject.trim() : "";
-  const message = typeof body.message === "string" ? body.message.trim() : "";
-
-  if (!name || name.length > MAX_NAME_LENGTH) errors.push("name");
-  if (!email || !EMAIL_PATTERN.test(email) || email.length > MAX_NAME_LENGTH) errors.push("email");
-  if (subjectRaw.length > MAX_SUBJECT_LENGTH) errors.push("subject");
-  if (!message || message.length > MAX_MESSAGE_LENGTH) errors.push("message");
-
-  if (errors.length > 0) {
-    return { errors, data: null };
-  }
-
-  return {
-    errors: [],
-    data: {
-      name,
-      email,
-      subject: subjectRaw || "New contact",
-      message,
-    },
-  };
-}
 
 async function sendContactEmail(data: ValidatedContact): Promise<boolean> {
   if (!hasResendEnv()) {

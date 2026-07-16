@@ -18,7 +18,7 @@ export interface ShopListing {
   addedAt?: string; // ISO, for sort-by-newest
 }
 
-const shopListingSchema = z.object({
+export const shopListingSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   set: z.string().min(1),
@@ -30,7 +30,7 @@ const shopListingSchema = z.object({
   addedAt: z.string().optional(),
 });
 
-const shopListingsSchema = z.array(shopListingSchema);
+export const shopListingsSchema = z.array(shopListingSchema);
 
 // Compile-time assert: schema output is assignable to the public interface.
 // (No runtime cost; purely a type check that fails the build if they diverge.)
@@ -49,8 +49,8 @@ void _schemaMatchesInterface;
  * hardening behavior (Item 1). This replaces the previous silent-drop
  * behavior, which could render a shop with cards missing and no signal.
  */
-export function loadShopListings(): ShopListing[] {
-  const result = shopListingsSchema.safeParse(rawListings);
+export function parseShopListings(data: unknown): ShopListing[] {
+  const result = shopListingsSchema.safeParse(data);
 
   if (!result.success) {
     const details = result.error.issues
@@ -60,7 +60,7 @@ export function loadShopListings(): ShopListing[] {
         const field = issue.path.slice(1).join(".") || "(root)";
         const offending =
           index !== null
-            ? (rawListings as unknown[])[index]
+            ? (data as unknown[])[index]
             : undefined;
         const idHint =
           offending && typeof offending === "object" && offending !== null &&
@@ -81,4 +81,8 @@ export function loadShopListings(): ShopListing[] {
   }
 
   return result.data;
+}
+
+export function loadShopListings(): ShopListing[] {
+  return parseShopListings(rawListings);
 }
