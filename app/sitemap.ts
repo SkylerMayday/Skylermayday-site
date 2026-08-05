@@ -29,7 +29,8 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
     changeFrequency: "monthly",
     priority: 0.5,
   },
-  { url: `${BASE_URL}/shop`, changeFrequency: "weekly", priority: 0.7 },
+  // /shop intentionally excluded — coming-soon placeholder as of 2026-08-05,
+  // not a page worth search-engine discovery until real inventory exists.
   { url: `${BASE_URL}/contact`, changeFrequency: "yearly", priority: 0.3 },
 ];
 

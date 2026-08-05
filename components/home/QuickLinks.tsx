@@ -8,9 +8,9 @@ interface QuickLink {
 
 const QUICK_LINKS: QuickLink[] = [
   {
-    title: "Shop",
-    description: "Browse Pokémon TCG cards available for sale.",
-    href: "/shop",
+    title: "PTCG Binders",
+    description: "Browse the full Pokédex card collection, shelf by shelf.",
+    href: "/projects/ptcg-binders",
   },
   {
     title: "Projects",
