@@ -26,8 +26,10 @@ test devDependencies are version-pinned.
 ## Environment variables
 
 Set these in Vercel Project Settings → Environment Variables (Production +
-Preview) for deployment, or in `.env.local` for local dev. None of these
-are `NEXT_PUBLIC_` — every credentialed call runs server-side only.
+Preview) for deployment, or in `.env.local` for local dev. Every
+credentialed call runs server-side only — the one exception is
+`NEXT_PUBLIC_SENTRY_DSN`, which isn't a secret (a DSN is meant to ship in
+the client bundle).
 
 | Name | Required | Purpose | Where obtained |
 |---|---|---|---|
@@ -42,6 +44,7 @@ are `NEXT_PUBLIC_` — every credentialed call runs server-side only.
 | `DISCORD_WEBHOOK_URL` | yes | "New submission" ping | Discord server → channel → Integrations → Webhooks |
 | `STREAM_ANALYSER_URL` | yes | External link-out target on /tools | Existing Railway app URL |
 | `GITHUB_BINDERS_RAW_BASE` | no | Base URL for binder JSON | Defaults to `https://raw.githubusercontent.com/SkylerMayday/binders-pokedex-binder/main` |
+| `NEXT_PUBLIC_SENTRY_DSN` | no | Client/server/edge error tracking | sentry.io project settings, Next.js platform. Error capture only — no session replay, no source-map upload (would need a `SENTRY_AUTH_TOKEN`, not currently set up). |
 
 If a required var for a given feature is missing, that feature degrades
 gracefully rather than crashing the build or the page (e.g. `/content`

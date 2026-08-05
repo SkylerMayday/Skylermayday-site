@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 // Content-Security-Policy built from the site's actual browser-loaded origins.
 // Server-to-server fetches (Twitch/YouTube/Discord widget APIs) are intentionally
@@ -41,7 +42,10 @@ const cspDirectives = [
   // CloudFront VOD segments do NOT need an entry here — those are CORS-blocked from
   // the browser and go through the same-origin audio-proxy/playlist-proxy routes,
   // already covered by 'self'. See .pipeline/specs.md §3.5.
-  "connect-src 'self' https://gql.twitch.tv",
+  // Sentry (2026-08-06): the browser SDK reports errors directly to Sentry's
+  // ingest endpoint via fetch — wildcarded since Sentry load-balances across
+  // subdomains of the region host, not just the one in today's DSN.
+  "connect-src 'self' https://gql.twitch.tv https://*.ingest.us.sentry.io",
   // Embedded third-party iframes (TikTok / Instagram embed.js).
   "frame-src https://www.tiktok.com https://www.instagram.com",
   // This site embeds no one else's frames-of-us and should never be framed.
@@ -143,4 +147,13 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// No org/project/authToken (2026-08-06) — those gate build-time source-map
+// upload, which needs a Sentry auth token (a real credential, requires
+// Skyler's own login to generate). Error capture works fully without it;
+// stack traces in the dashboard just show minified code until that's added.
+// silent: true unconditionally — CI is undefined outside a CI environment,
+// so `!process.env.CI` would otherwise print the plugin's build banner on
+// every local `npm run build` and `npm run dev`.
+export default withSentryConfig(nextConfig, {
+  silent: true,
+});
