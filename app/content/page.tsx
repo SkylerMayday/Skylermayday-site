@@ -59,8 +59,10 @@ export default async function ContentPage() {
   const { items, sourceFailures } = await getContentItems();
 
   return (
-    <div className="flex flex-col gap-8 py-10">
-      <h1 className="text-3xl font-bold">Content</h1>
+    <div className="flex flex-col gap-8 py-16 sm:py-24">
+      <h1 className="text-balance text-[40px] leading-[0.98] font-black tracking-[-0.03em] sm:text-[64px]">
+        Content
+      </h1>
       <PlatformFilter
         items={items}
         sourceFailures={sourceFailures}

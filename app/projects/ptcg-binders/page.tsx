@@ -32,8 +32,10 @@ export default async function BindersOverviewPage() {
     }
 
     return (
-      <div className="flex flex-col gap-8 py-10">
-        <h1 className="text-3xl font-bold">PTCG Binders</h1>
+      <div className="flex flex-col gap-8 py-16 sm:py-24">
+        <h1 className="text-balance text-[40px] leading-[0.98] font-black tracking-[-0.03em] sm:text-[64px]">
+          PTCG Binders
+        </h1>
         <ErrorState message="Binders are temporarily unavailable." />
       </div>
     );
@@ -61,9 +63,11 @@ export default async function BindersOverviewPage() {
   const { shelf1, shelf2 } = partitionBindersByShelf(binderFile.binders);
 
   return (
-    <div className="flex flex-col gap-8 py-10">
+    <div className="flex flex-col gap-8 py-16 sm:py-24">
       <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-bold">PTCG Binders</h1>
+        <h1 className="text-balance text-[40px] leading-[0.98] font-black tracking-[-0.03em] sm:text-[64px]">
+          PTCG Binders
+        </h1>
         <CompletionBar completion={overall} label="Pokédex completion" />
       </div>
 

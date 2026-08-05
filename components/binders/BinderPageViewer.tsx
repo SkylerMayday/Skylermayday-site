@@ -138,7 +138,10 @@ export default function BinderPageViewer({
         </button>
 
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm text-neutral-500 dark:text-neutral-400">
+          {/* --fg-muted, not neutral-500/400 — same inherited-default retoken
+              as Changelog/CompletionBar. This route was never axe-audited, so
+              the 4.43:1 page counter had gone unreported. */}
+          <span className="text-sm text-fg-muted">
             Page {pageIndex + 1} of {pageCount}
           </span>
           {pageCount > 1 && (

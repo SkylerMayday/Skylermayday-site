@@ -5,8 +5,8 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-neutral-200 py-8 dark:border-neutral-800">
-      <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 text-sm text-neutral-600 dark:text-neutral-400">
+    <footer className="border-t border-border py-8">
+      <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 text-sm text-fg-muted sm:px-6">
         <div className="flex flex-wrap gap-4">
           {siteConfig.platformLinks.map((link) => (
             <a
@@ -14,12 +14,12 @@ export default function Footer() {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-neutral-950 dark:hover:text-white"
+              className="transition-colors duration-150 ease-out hover:text-fg"
             >
               {link.platform}
             </a>
           ))}
-          <Link href="/contact" className="hover:text-neutral-950 dark:hover:text-white">
+          <Link href="/contact" className="transition-colors duration-150 ease-out hover:text-fg">
             Contact
           </Link>
         </div>

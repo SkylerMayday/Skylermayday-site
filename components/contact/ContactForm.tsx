@@ -79,7 +79,11 @@ export default function ContactForm() {
 
   if (status === "success") {
     return (
-      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
+      // Retokened off raw emerald onto --success (globals.css). The token is
+      // used as a tint + hairline only, never as the text colour: at #1F8A5F
+      // it clears the 3:1 non-text floor on both backgrounds but not the
+      // 4.5:1 text floor in light mode, so the message body stays on --fg.
+      <div className="rounded-lg border border-success/50 bg-success/10 p-6 text-fg" role="status">
         Thanks — I&apos;ll get back to you.
       </div>
     );
@@ -94,10 +98,15 @@ export default function ContactForm() {
         <input
           id="name"
           type="text"
+          autoComplete="name"
+          // aria-invalid so the error state is not signalled by border colour
+          // alone (design-implementation Phase 4's Web Interface Guidelines
+          // forms rules).
+          aria-invalid={errors.includes("name") || undefined}
           value={name}
           onChange={(event) => setName(event.target.value)}
-          className={`rounded border px-3 py-2 dark:bg-neutral-900 ${
-            errors.includes("name") ? "border-red-500" : "border-neutral-300 dark:border-neutral-700"
+          className={`rounded-lg border bg-surface px-3 py-2 text-base text-fg ${
+            errors.includes("name") ? "border-danger" : "border-border"
           }`}
           required
         />
@@ -110,10 +119,12 @@ export default function ContactForm() {
         <input
           id="email"
           type="email"
+          autoComplete="email"
+          aria-invalid={errors.includes("email") || undefined}
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className={`rounded border px-3 py-2 dark:bg-neutral-900 ${
-            errors.includes("email") ? "border-red-500" : "border-neutral-300 dark:border-neutral-700"
+          className={`rounded-lg border bg-surface px-3 py-2 text-base text-fg ${
+            errors.includes("email") ? "border-danger" : "border-border"
           }`}
           required
         />
@@ -121,14 +132,18 @@ export default function ContactForm() {
 
       <div className="flex flex-col gap-1">
         <label htmlFor="subject" className="text-sm font-medium">
-          Subject <span className="text-neutral-400">(optional)</span>
+          {/* text-fg-muted (7.27:1) — was text-neutral-400, which computed to
+              2.36:1 on the new --bg and was already a hard AA failure at
+              2.53:1 on the old white background (Stage 4 verdict,
+              Correction B). */}
+          Subject <span className="text-fg-muted">(optional)</span>
         </label>
         <input
           id="subject"
           type="text"
           value={subject}
           onChange={(event) => setSubject(event.target.value)}
-          className="rounded border border-neutral-300 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900"
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-base text-fg"
         />
       </div>
 
@@ -138,11 +153,12 @@ export default function ContactForm() {
         </label>
         <textarea
           id="message"
+          aria-invalid={errors.includes("message") || undefined}
           value={message}
           onChange={(event) => setMessage(event.target.value)}
           rows={6}
-          className={`rounded border px-3 py-2 dark:bg-neutral-900 ${
-            errors.includes("message") ? "border-red-500" : "border-neutral-300 dark:border-neutral-700"
+          className={`rounded-lg border bg-surface px-3 py-2 text-base text-fg ${
+            errors.includes("message") ? "border-danger" : "border-border"
           }`}
           required
         />
@@ -161,14 +177,31 @@ export default function ContactForm() {
         />
       </div>
 
+      {/* --danger in light (5.28:1) / --danger-soft in dark (8.62:1). The
+          saturated --danger only reaches 3.44:1 on the dark --bg, so it is a
+          fill/border colour there, not a text colour — hence the paired soft
+          form, exactly like --brand / --brand-soft. */}
       {status === "error" && errorMessage && (
-        <p className="text-sm text-red-600 dark:text-red-400">{errorMessage}</p>
+        <p role="alert" className="text-sm font-medium text-danger dark:text-danger-soft">
+          {errorMessage}
+        </p>
       )}
 
+      {/* Single primary-button recipe sitewide: --brand fill, white text
+          (4.64:1), --brand-strong on hover.
+
+          Deliberately NOT dimmed while disabled. The only state that disables
+          this button is `pending`, i.e. the moment it reads "Sending…" — the
+          one moment the user most needs the status legible. `disabled:opacity-60`
+          composited it to 2.53:1 in light mode. WCAG 1.4.3 exempts inactive
+          controls so that was never a gate failure, but opacity was signalling
+          the wrong thing: pending is "busy", not "invalid". The `disabled`
+          attribute alone makes it non-interactive; `cursor-not-allowed` and
+          the changed label carry the affordance. (DESIGN.md §5.4.) */}
       <button
         type="submit"
         disabled={status === "pending"}
-        className="rounded bg-neutral-900 px-4 py-2 font-medium text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+        className="w-fit rounded-lg bg-brand px-4 py-2 font-medium text-white transition-colors duration-150 ease-out hover:bg-brand-strong disabled:cursor-not-allowed motion-reduce:transition-none"
       >
         {status === "pending" ? "Sending…" : "Send Message"}
       </button>

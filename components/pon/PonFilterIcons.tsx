@@ -131,10 +131,13 @@ interface PonFilterIconProps {
 export default function PonFilterIcon({ variant, active }: PonFilterIconProps) {
   return (
     <div
-      className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-lg text-neutral-600 dark:text-neutral-300 ${
-        active
-          ? "bg-neutral-200 ring-2 ring-neutral-900 dark:bg-neutral-700 dark:ring-white"
-          : "bg-neutral-100 dark:bg-neutral-800"
+      // Retokened off raw neutrals. Active state marked by a --brand ring plus
+      // a --brand tint (not the old black-in-light / white-in-dark ring, which
+      // was a second selection vocabulary competing with the nav's brand
+      // underline and PlatformFilter's brand pill). 56px tile clears the 44px
+      // touch-target minimum at every breakpoint.
+      className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-lg transition-colors duration-150 ease-out motion-reduce:transition-none ${
+        active ? "bg-brand/15 text-brand-strong ring-2 ring-brand dark:text-brand-soft" : "bg-border text-fg-muted"
       }`}
     >
       {ICONS[variant]}

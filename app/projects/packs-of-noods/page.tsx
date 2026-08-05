@@ -13,10 +13,16 @@ export default function PacksOfNoodsPage() {
   const locations = loadPonLocations();
 
   return (
-    <div className="flex flex-col gap-8 py-10">
-      <h1 className="text-3xl font-bold">Packs of Noods</h1>
+    <div className="flex flex-col gap-8 py-16 sm:py-24">
+      <h1 className="text-balance text-[40px] leading-[0.98] font-black tracking-[-0.03em] sm:text-[64px]">
+        Packs of Noods
+      </h1>
 
-      <p className="max-w-prose">
+      {/* `prose-block` replaces `max-w-prose` — RISK 1's 17/1.65/68ch is a
+          tighter, measured cap than Tailwind's generic 65ch-at-inherited-size
+          default, and this is long-form body copy in the exact typeface the
+          brief flags as weakest for it. */}
+      <p className="prose-block text-fg-muted">
         A food IRL stream series with draftpicked, running since December 2022.
         Each episode explores a Singapore food spot &mdash; noodles are a
         recurring favourite, not the whole story &mdash; and ends with opening

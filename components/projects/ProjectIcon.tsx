@@ -119,7 +119,7 @@ const ICONS: Record<ProjectIconVariant, ReactNode> = {
 /** Icon tile shown beside a ProjectCard's content, alternating sides per row. */
 export default function ProjectIcon({ variant }: { variant: ProjectIconVariant }) {
   return (
-    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-border text-fg-muted">
       {ICONS[variant]}
     </div>
   );

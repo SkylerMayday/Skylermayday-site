@@ -67,10 +67,16 @@ export default function PlatformFilter({ items, sourceFailures, tiktokSlot, inst
             key={option.value}
             type="button"
             onClick={() => setActive(option.value)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+            // One button vocabulary sitewide: selected = --brand fill with
+            // white text (4.64:1 AA); unselected = --surface with a --border
+            // hairline (the surface alone is nearly invisible against --bg in
+            // light mode, so the hairline is what makes it read as a control).
+            // Replaces the black-in-light / white-in-dark neutral pills, which
+            // were a third button recipe competing with --brand.
+            className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors duration-150 ease-out motion-reduce:transition-none ${
               active === option.value
-                ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-                : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                ? "border-brand bg-brand text-white"
+                : "border-border bg-surface text-fg-muted hover:border-brand hover:text-fg"
             }`}
           >
             {option.label}
@@ -87,7 +93,18 @@ export default function PlatformFilter({ items, sourceFailures, tiktokSlot, inst
       ) : filteredItems.length === 0 ? (
         <EmptyState message="No content to show for this filter yet." />
       ) : (
-        <ContentGrid items={filteredItems} />
+        <section>
+          {/* /content's Twitch and YouTube tabs render card h3s directly under
+              the page h1 (axe `heading-order`, moderate) — the TikTok and
+              Instagram slots already carry their own visible h2, so only this
+              branch had the gap. Named after the active tab so a screen-reader
+              user hears which filter produced the list; hidden visually
+              because the selected pill already says it on screen.
+              Scoped here rather than inside ContentGrid, which is also used by
+              the homepage teaser under its own visible h2. */}
+          <h2 className="sr-only">{activeOption.label} content</h2>
+          <ContentGrid items={filteredItems} />
+        </section>
       )}
     </div>
   );

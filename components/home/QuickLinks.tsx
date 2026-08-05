@@ -26,15 +26,19 @@ const QUICK_LINKS: QuickLink[] = [
 
 export default function QuickLinks() {
   return (
-    <section className="grid grid-cols-1 gap-4 py-8 sm:grid-cols-3">
+    <section className="grid grid-cols-1 gap-4 py-16 sm:grid-cols-3 sm:py-24">
       {QUICK_LINKS.map((link) => (
         <Link
           key={link.href}
           href={link.href}
-          className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-5 transition hover:shadow-md dark:border-neutral-800"
+          // border -> --brand + 2px lift on hover, no soft shadow (design-brief.md
+          // §5.4 — "soft shadows on chrome are out"; §4.6 motion spec: 160ms ease-out).
+          className="flex flex-col gap-2 rounded-lg border border-border p-5 transition-[border-color,transform] duration-150 ease-out hover:-translate-y-0.5 hover:border-brand motion-reduce:transition-none motion-reduce:hover:translate-y-0"
         >
-          <h3 className="font-semibold">{link.title}</h3>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">{link.description}</p>
+          <h3 className="text-[20px] leading-[1.25] font-bold tracking-[-0.01em] sm:text-[22px]">
+            {link.title}
+          </h3>
+          <p className="text-sm text-fg-muted">{link.description}</p>
         </Link>
       ))}
     </section>

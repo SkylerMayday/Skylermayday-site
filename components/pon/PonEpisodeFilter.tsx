@@ -43,7 +43,7 @@ function cellText(value: string): string {
   return value === "" ? EM_DASH : value;
 }
 
-const LABEL_CLASSES = "text-xs text-neutral-600 dark:text-neutral-400";
+const LABEL_CLASSES = "text-xs font-medium text-fg-muted";
 const BUTTON_CLASSES = "flex flex-col items-center gap-1";
 
 interface PonEpisodeFilterProps {
@@ -103,7 +103,7 @@ export default function PonEpisodeFilter({ locations }: PonEpisodeFilterProps) {
         </div>
 
         {foodOpen ? (
-          <div className="flex flex-wrap gap-3 border-t border-neutral-200 pt-3 dark:border-neutral-800">
+          <div className="flex flex-wrap gap-3 border-t border-border pt-3">
             {FOOD_SUBMENU.map((key) => (
               <button
                 key={key}
@@ -128,7 +128,7 @@ export default function PonEpisodeFilter({ locations }: PonEpisodeFilterProps) {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
               <thead>
-                <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500 dark:border-neutral-800">
+                <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-fg-muted">
                   <th className="py-2 pr-4 font-medium">Date</th>
                   <th className="py-2 pr-4 font-medium">Name</th>
                   <th className="py-2 pr-4 font-medium">Location</th>
@@ -141,7 +141,7 @@ export default function PonEpisodeFilter({ locations }: PonEpisodeFilterProps) {
                 {filtered.map((row, index) => (
                   <tr
                     key={`${row.date}-${row.name}-${index}`}
-                    className="border-b border-neutral-100 align-top dark:border-neutral-800"
+                    className="border-b border-border align-top"
                   >
                     <td className="py-2 pr-4 whitespace-nowrap">{formatMonth(row.date)}</td>
                     <td className="py-2 pr-4">{row.name}</td>
@@ -154,7 +154,7 @@ export default function PonEpisodeFilter({ locations }: PonEpisodeFilterProps) {
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-fg-muted">
             PC = Permanently Closed &middot; TC = Temporarily Closed &middot; OOA
             = Other Outlets Available.
           </p>

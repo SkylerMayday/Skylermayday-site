@@ -7,7 +7,7 @@ interface EmptyStateProps {
 export default function EmptyState({ message, className = "" }: EmptyStateProps) {
   return (
     <div
-      className={`rounded-lg border border-dashed border-neutral-300 p-8 text-center text-neutral-500 dark:border-neutral-700 dark:text-neutral-400 ${className}`}
+      className={`rounded-lg border border-dashed border-border p-8 text-center text-fg-muted ${className}`}
     >
       <p>{message}</p>
     </div>

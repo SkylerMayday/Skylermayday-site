@@ -48,7 +48,13 @@ export default function CardSlot({ slot }: CardSlotProps) {
         onClick={() => setIsZoomOpen(true)}
         aria-label={`View ${slot.slotName} enlarged${slot.isLocked ? " (locked)" : ""}`}
         title={slot.slotName}
-        className="group relative flex aspect-[5/7] w-full flex-col items-center justify-center overflow-hidden rounded border border-neutral-200 bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:border-neutral-800 dark:bg-neutral-900"
+        // Focus ring is --brand, matching every other focusable control on the
+        // site (DESIGN.md §7.2: 2px brand ring at 2px offset). Kept in the
+        // `outline` form rather than Tailwind's `ring-*`: outline-offset leaves
+        // a transparent gap, so it needs no `ring-offset-<color>` and stays
+        // correct on both the neutral-100 tile and the page background.
+        // 4.26:1 against the tile, 4.34/4.19:1 against light/dark --bg.
+        className="group relative flex aspect-[5/7] w-full flex-col items-center justify-center overflow-hidden rounded border border-neutral-200 bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-neutral-800 dark:bg-neutral-900"
       >
         <Image
           src={slot.imageUrl as string}

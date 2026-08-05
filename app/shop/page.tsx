@@ -11,8 +11,10 @@ export default function ShopPage() {
   const listings = loadShopListings();
 
   return (
-    <div className="flex flex-col gap-8 py-10">
-      <h1 className="text-3xl font-bold">Shop</h1>
+    <div className="flex flex-col gap-8 py-16 sm:py-24">
+      <h1 className="text-balance text-[40px] leading-[0.98] font-black tracking-[-0.03em] sm:text-[64px]">
+        Shop
+      </h1>
       <ShopFilters listings={listings} />
     </div>
   );

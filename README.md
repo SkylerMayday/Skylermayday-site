@@ -84,8 +84,11 @@ shows up within one revalidate window.
    `skylermayday.com` is verified in Resend.
 4. About page copy (`data/site-config.ts`) is placeholder — replace with
    real bio/brand story/schedule/handles.
-5. `public/og-image.png` is a placeholder — replace with a real social
-   share image.
+5. `app/opengraph-image.tsx` ships the type-only fallback (flat plane, no
+   backdrop) — the illustrated 1200x630 backdrop asset described in
+   `.pipeline/design-brief.md` §7.5 doesn't exist yet (blocked on
+   inference.sh credits). Drop it at `assets/og-backdrop.png` and flip
+   `HAS_BACKDROP` in that file to enable it; no other code change needed.
 
 ## Deployment
 

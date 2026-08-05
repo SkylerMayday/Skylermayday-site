@@ -88,7 +88,7 @@ export default async function BinderSectionPage({
       );
     }
     return (
-      <div className="flex flex-col gap-8 py-10">
+      <div className="flex flex-col gap-8 py-16 sm:py-24">
         <ErrorState message="Binders are temporarily unavailable." />
       </div>
     );
@@ -107,16 +107,18 @@ export default async function BinderSectionPage({
   const completion = computeSectionCompletion(section);
 
   return (
-    <div className="flex flex-col gap-8 py-10">
+    <div className="flex flex-col gap-8 py-16 sm:py-24">
       <Link
         href="/projects/ptcg-binders"
-        className="text-sm font-medium text-neutral-500 transition hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+        className="text-sm font-medium text-fg-muted transition-colors duration-150 ease-out hover:text-fg motion-reduce:transition-none"
       >
         &larr; Back to Binders
       </Link>
 
       <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-bold">{section.name}</h1>
+        <h1 className="text-balance text-[40px] leading-[0.98] font-black tracking-[-0.03em] sm:text-[64px]">
+          {section.name}
+        </h1>
         <CompletionBar completion={completion} label="Section completion" />
       </div>
 

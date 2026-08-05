@@ -77,7 +77,14 @@ export default function BinderSectionSpine({
          12px headroom so the top face renders inside the shelf (v5 §2.2);
          cursor-pointer per v5 §9.1.5 (don't rely on preflight); focus
          ring stays on the UNtransformed Link so it never skews (v5 §6). */
-      className="binder-scene group relative block cursor-pointer pt-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+      // --brand focus ring, same recipe as CardSlot. The Stage 4 verdict named
+      // CardSlot's blue-500 as "the only non---brand focus ring on the site";
+      // this blue-600 sibling is the second, and fixing one without the other
+      // would leave the exact inconsistency the fix exists to remove. Purely
+      // inherited chrome, never a wood-material decision, so it falls under
+      // design-brief.md §5.6's values-and-mechanism amendment.
+      // 4.45:1 against the cabinet's light face, 3.86:1 against its dark one.
+      className="binder-scene group relative block cursor-pointer pt-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
     >
       {/* The 3D object (v5 §2.3) — preserve-3d wrapper owning the tilt;
           hover transforms live HERE and only here (never two competing
@@ -161,8 +168,12 @@ export default function BinderSectionSpine({
             className="absolute inset-x-0 bottom-0 h-[3px] overflow-hidden rounded-b-[3px] bg-white/25"
             aria-hidden="true"
           >
+            {/* --success, not emerald-500 — see CompletionBar for the full
+                reasoning. Not inside a visual baseline: the screenshotted
+                second shelf asserts `binder-cabinet-empty`, so no spine
+                renders in it. */}
             <div
-              className="h-full bg-emerald-500"
+              className="h-full bg-success"
               style={{ width: `${completion.pct}%` }}
             />
           </div>

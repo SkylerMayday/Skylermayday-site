@@ -14,8 +14,10 @@ interface ContentTeaserProps {
  */
 export default function ContentTeaser({ items, failed }: ContentTeaserProps) {
   return (
-    <section className="py-8">
-      <h2 className="mb-4 text-xl font-semibold">Latest Content</h2>
+    <section className="py-16 sm:py-24">
+      <h2 className="mb-4 text-[28px] leading-[1.15] font-bold tracking-[-0.02em] sm:text-[36px]">
+        Latest Content
+      </h2>
       {failed || items.length === 0 ? (
         <EmptyState message="Content loading — check back soon." />
       ) : (

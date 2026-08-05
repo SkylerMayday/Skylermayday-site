@@ -29,7 +29,13 @@ export default function Changelog({ entries, limit = 10 }: ChangelogProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h2 className="text-lg font-semibold">Recent Updates</h2>
+      {/* design-brief.md §4.4's H2 row. Was `text-lg font-semibold` (18px/600)
+          — an inherited pre-rebrand default, not a binder design decision, and
+          weight 600 is banned by anti-goal 9. Retokened under §5.6's
+          values-and-mechanism amendment. */}
+      <h2 className="text-balance text-[28px] leading-[1.15] font-bold tracking-[-0.02em] sm:text-[36px]">
+        Recent Updates
+      </h2>
       <ul className="flex flex-col gap-4">
         {recent.map((entry, index) => {
           const visibleChanges = entry.changes.slice(0, MAX_CHANGES_SHOWN);
@@ -40,7 +46,12 @@ export default function Changelog({ entries, limit = 10 }: ChangelogProps) {
               key={`${entry.publishedAt}-${index}`}
               className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800"
             >
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+              {/* --fg-muted, not neutral-500/400: #737373 was a 4.74:1 pass on
+                  the old #ffffff page and became a 4.43:1 FAIL once --bg moved
+                  to #F7F7F8. The token is mode-aware, so it replaces the pair
+                  rather than sitting alongside a `dark:` override — 7.27:1
+                  light (was 4.43), 7.66:1 dark (was 7.71, no regression). */}
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm text-fg-muted">
                 <span>{formatSgt(entry.publishedAt)}</span>
                 <span>
                   +{entry.summary.added} / ~{entry.summary.replaced} / -{entry.summary.removed} &middot;{" "}
@@ -56,7 +67,7 @@ export default function Changelog({ entries, limit = 10 }: ChangelogProps) {
                 ))}
               </ul>
               {hiddenCount > 0 && (
-                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                <p className="mt-1 text-sm text-fg-muted">
                   +{hiddenCount} more
                 </p>
               )}

@@ -30,10 +30,17 @@ export default function ShopFilters({ listings }: ShopFiltersProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap gap-4">
+        {/* Both selects are visually label-less by design (their first option
+            names the dimension), so each needs an accessible name of its own
+            — without one a screen-reader user hears "combo box, All Sets" and
+            "combo box, All" and cannot tell which filter they are changing.
+            Wording matches what each control actually filters: `set` and
+            `status` on ShopListing. */}
         <select
+          aria-label="Filter by set"
           value={setFilter}
           onChange={(event) => setSetFilter(event.target.value)}
-          className="rounded border border-neutral-300 bg-white px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="min-h-11 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-fg"
         >
           <option value="all">All Sets</option>
           {uniqueSets.map((set) => (
@@ -44,9 +51,10 @@ export default function ShopFilters({ listings }: ShopFiltersProps) {
         </select>
 
         <select
+          aria-label="Filter by availability"
           value={statusFilter}
           onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
-          className="rounded border border-neutral-300 bg-white px-3 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900"
+          className="min-h-11 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-fg"
         >
           <option value="all">All</option>
           <option value="available">Available</option>

@@ -7,7 +7,9 @@ interface PlaceholderProps {
 export default function Placeholder({ className = "", label }: PlaceholderProps) {
   return (
     <div
-      className={`flex items-center justify-center bg-neutral-200 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400 ${className}`}
+      // --border / --fg-muted rather than raw neutrals — measured 5.98:1
+      // light, 6.03:1 dark.
+      className={`flex items-center justify-center bg-border text-fg-muted ${className}`}
       role="img"
       aria-label={label ?? "No image available"}
     >

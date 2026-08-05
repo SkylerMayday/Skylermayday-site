@@ -1,8 +1,100 @@
 @import "tailwindcss";
 
+/* Retargets Tailwind v4's `dark:` variant from `prefers-color-scheme` to a
+   `.dark` class match (or any ancestor carrying it) — this single line is
+   what makes next-themes' class-based toggle drive all ~201 existing
+   `dark:` utility occurrences across the codebase (design-brief.md Finding
+   B / §5.2). None of those call sites need editing. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Binds Tailwind's generated utilities to the CSS custom properties below.
+   `inline` (not the plain `@theme` form) so each utility reads the live
+   custom property at paint time rather than baking in :root's value at
+   build time — required for `bg-bg`/`text-fg`/etc. to actually repaint
+   when `.dark` toggles, since the values themselves live in :root/.dark
+   below, not here. --font-sans is the actual font-application mechanism
+   for League Spartan (design-brief.md Finding A / §4.4, DESIGN.md §7.3):
+   next/font/google only creates the CSS variable — this binding is what
+   makes Tailwind's `font-sans` (and therefore the whole page, since no
+   component sets a competing font-family) resolve to it. */
+@theme inline {
+  --font-sans: var(--font-league-spartan);
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-hero: var(--surface-hero);
+  --color-border: var(--border);
+  --color-border-hero: var(--border-hero);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-muted-hero: var(--fg-muted-hero);
+
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand palette (design-brief.md §4.3 "Brand" table / DESIGN.md §3.1) —
+     mode-invariant: the hex values themselves don't change between light
+     and dark, only which token a given component reaches for does. */
+  --brand: #9146ff;
+  --brand-strong: #6e2fd1;
+  --brand-soft: #bf94ff;
+  --accent: #f2941c;
+  --accent-strong: #a85c00;
+  --danger: #c4283c;
+
+  /* --danger-soft is the dark-mode TEXT form of --danger, exactly mirroring
+     the --brand / --brand-soft relationship (design-brief.md §4.3): the
+     saturated --danger only reaches 3.44:1 on the dark --bg (#0F0B16), i.e.
+     it is a fill/border color there, not a text color. Derived
+     algorithmically from --danger rather than picked by eye — same hue
+     (352.3deg) and saturation (66%), lightness raised 46.3% -> 75%
+     (design-implementation Phase 6's fixed-hue lightness ramp). Measured:
+     8.62:1 on --bg dark, 7.96:1 on --surface dark (both AAA); 2.3:1 on the
+     light --bg, so it is dark-mode-only, again like --brand-soft.
+     --success closes the gap design-brief.md §4.3 deferred on a false
+     premise ("no current surface needs one") — app/projects/page.tsx's
+     Discord bot online/offline dot has needed one all along. Same
+     shared-origin rule as --accent and --danger: lifted verbatim from
+     sectionSpineColors.ts (Generation III's #1F8A5F block, the
+     Ruby/Sapphire/Emerald green) and re-declared here as its own literal,
+     NOT imported, so the frozen spine table stays a documented rationale
+     rather than a code dependency. Measured against the dot's actual
+     carriers: 4.04:1 on the light --bg and 4.50:1 on the dark --bg — both
+     clear the 3:1 WCAG 1.4.11 non-text floor that applies to a status
+     indicator. It is deliberately NOT cleared for normal-size text on the
+     light background (4.04 < 4.5), so it is used as a fill/tint only. */
+  --danger-soft: #e995a0;
+  --success: #1f8a5f;
+
+  /* The hero plane is deliberately identical in both themes (Always-Dark
+     Hero Rationale — design-brief.md RISK 2, DESIGN.md §3.4): a light-mode
+     visitor still gets the dark hero band, so these three live outside the
+     light/dark split below rather than being redefined in `.dark`.
+     --fg-muted-hero is the "#C9C0D8-equivalent muted-on-hero" color named
+     in design-brief.md §5.4 for `heroBlurb` — given a token here (rather
+     than left as an inline hex in Hero.tsx) so it follows the same
+     token-not-magic-value discipline as everything else on the hero
+     plane. */
+  --surface-hero: #1b0f2e;
+  --border-hero: #3a2a55;
+  --fg-muted-hero: #c9c0d8;
+
+  /* Light theme (design-brief.md §4.3 "Light theme" table) — the default
+     resolution for :root, i.e. no `.dark` class present. Cool, chroma≈0
+     off-white — explicitly not the cream/sand/beige band (anti-goal #1). */
+  --bg: #f7f7f8;
+  --surface: #ffffff;
+  --border: #e2e1e6;
+  --fg: #16121c;
+  --fg-muted: #55505f;
 
   /* Bookshelf wood — "Slim Carcase" v8 (design-brief.md v8 §4.2). REPLACES
      "Open Carcase" v6's five-token family (--wood-1/2/3/-hi/-frame) in
@@ -80,23 +172,32 @@
                            genuinely looks DOWN at the shelf (~17deg). */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Converted from `@media (prefers-color-scheme: dark)` to a `.dark` class
+   selector (design-brief.md Finding B / §5.2, DESIGN.md §7.1) so the
+   sitewide manual toggle and the wood-binder subsystem move together — a
+   light-OS visitor who manually switches to dark must not get a dark page
+   wrapped around a light-mode bookshelf. Every wood/grain hex below is
+   byte-identical to the previous media-query block; only the selector
+   changed. */
+.dark {
+  /* Dark theme (design-brief.md §4.3 "Dark theme (canonical)" table). */
+  --bg: #0f0b16;
+  --surface: #1a1424;
+  --border: #2a2137;
+  --fg: #ede9f2;
+  --fg-muted: #a79fb5;
 
-    /* "Slim Carcase" v8 dark-mode tokens (design-brief.md v8 §4.2, exact
-       revised values — supersedes the "Open Carcase" v6 five-token dark
-       set). --wood-hi is the one token deliberately NOT scaled down by the
-       usual ~20% darkening relationship the other pairs use — brief §4.1:
-       it's brightened in dark mode (per v6 Reviewer's own recommendation),
-       not darkened, since it's the sole legibility mechanism and dark
-       scenes need MORE edge contrast, not less. */
-    --wood-body: #58402a;
-    --wood-recess: #241a10;
-    --wood-hi: #e0bd8c;
-    --grain: rgba(20, 12, 5, 0.55);
-  }
+  /* "Slim Carcase" v8 dark-mode tokens (design-brief.md v8 §4.2, exact
+     revised values — supersedes the "Open Carcase" v6 five-token dark
+     set). --wood-hi is the one token deliberately NOT scaled down by the
+     usual ~20% darkening relationship the other pairs use — brief §4.1:
+     it's brightened in dark mode (per v6 Reviewer's own recommendation),
+     not darkened, since it's the sole legibility mechanism and dark
+     scenes need MORE edge contrast, not less. */
+  --wood-body: #58402a;
+  --wood-recess: #241a10;
+  --wood-hi: #e0bd8c;
+  --grain: rgba(20, 12, 5, 0.55);
 }
 
 @media (max-width: 480px) {
@@ -129,8 +230,8 @@ html {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--fg);
 }
 
 .line-clamp-2 {
@@ -138,6 +239,70 @@ body {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Long-form reading block — design-brief.md RISK 1's MANDATORY mitigation,
+   made reusable instead of re-typed per page.
+   RISK 1 accepts a single geometric sans (League Spartan) sitewide and
+   states its one real cost plainly: geometric sans is the weakest category
+   of typeface for long body copy, because circular bowls and near-identical
+   o/c/e shapes flatten word-shape differentiation at paragraph length. The
+   brief's mitigation is not optional and is exactly these three values:
+   17px (not 16), line-height 1.65, measure capped at ~68ch. They are here
+   as ONE named class rather than three utilities repeated on every <p> so
+   that the next long-form page inherits the mitigation by reaching for
+   `prose-block` — the first pass applied them only to Hero's 2-line blurb
+   and missed /about, the one page the brief names by name as the risk case.
+   Declared unlayered, matching this file's existing `.line-clamp-2`
+   convention.
+   text-wrap: pretty is the orphan-reduction half of design-implementation
+   Phase 4's typography rule (balance is for headings, pretty for prose). */
+.prose-block {
+  max-width: 68ch;
+  font-size: 17px;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+/* Skip-to-content link (app/layout.tsx). Written as a named class rather than
+   Tailwind's `sr-only focus:not-sr-only` pair for one concrete reason found by
+   measuring it: `not-sr-only` resets `padding` to 0, so the revealed link
+   rendered 88x20px with the px-4/py-2 utilities silently overridden. Declaring
+   both states here makes the revealed size deterministic instead of dependent
+   on Tailwind's internal utility sort order, and gets it to a comfortable
+   44px-tall target. */
+.skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link:focus-visible {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 100;
+  width: auto;
+  height: auto;
+  min-height: 44px;
+  margin: 0;
+  padding: 12px 20px;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  background: var(--brand); /* white on --brand = 4.64:1, AA */
+  color: #ffffff;
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
 }
 
 /* =========================================================================
@@ -334,7 +499,9 @@ body {
     inset 0 -1px 0 rgba(255, 255, 255, 0.35),
     inset 0 10px 14px -8px rgba(0, 0, 0, 0.35);
 }
-@media (prefers-color-scheme: dark) {
+/* Converted from `@media (prefers-color-scheme: dark)` to `.dark`
+   (design-brief.md Finding B / DESIGN.md §7.1) — value byte-identical. */
+.dark {
   /* v5 §9.1.1: ambient dim via an inset-shadow OVERLAY, NOT `filter:
      brightness()` — filter is a grouping property and on a 3D-transformed
      child inside a preserve-3d context it forces flattening/broken
@@ -407,14 +574,14 @@ body {
   pointer-events: none;
   transition: opacity 160ms ease-out;
 }
-@media (prefers-color-scheme: dark) {
-  .binder-contact-shadow {
-    background: radial-gradient(
-      ellipse 50% 50% at 50% 50%,
-      rgba(0, 0, 0, 0.62),
-      transparent 72%
-    );
-  }
+/* Converted from `@media (prefers-color-scheme: dark)` to `.dark`
+   (design-brief.md Finding B / DESIGN.md §7.1) — value byte-identical. */
+.dark .binder-contact-shadow {
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    rgba(0, 0, 0, 0.62),
+    transparent 72%
+  );
 }
 
 /* --- B1: the shelf — a wood-textured BOX the books sit INSIDE (v3 §4.3
@@ -686,12 +853,12 @@ body {
   right: 0;
   box-shadow: inset 1px 0 0 var(--wood-hi);
 }
-@media (prefers-color-scheme: dark) {
-  .binder-cabinet {
-    box-shadow:
-      inset 0 0 48px rgba(0, 0, 0, 0.4),
-      inset 0 2px 8px rgba(0, 0, 0, 0.5);
-  }
+/* Converted from `@media (prefers-color-scheme: dark)` to `.dark`
+   (design-brief.md Finding B / DESIGN.md §7.1) — value byte-identical. */
+.dark .binder-cabinet {
+  box-shadow:
+    inset 0 0 48px rgba(0, 0, 0, 0.4),
+    inset 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* --- Base / plinth (design-brief.md v8 §3.1.4/§10.2, new — no precedent

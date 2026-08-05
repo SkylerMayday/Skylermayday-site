@@ -23,12 +23,14 @@ export default function TikTokEmbeds() {
 
   return (
     <div>
-      <h2 className="mb-4 text-lg font-semibold">TikTok</h2>
+      <h2 className="mb-4 text-balance text-[28px] leading-[1.15] font-bold tracking-[-0.02em] sm:text-[36px]">
+        TikTok
+      </h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {embeds.map((embed) => (
           <blockquote
             key={embed.id}
-            className="tiktok-embed rounded-lg border border-neutral-200 p-2 dark:border-neutral-800"
+            className="tiktok-embed rounded-lg border border-border p-2"
             cite={embed.url}
             data-video-id={embed.id}
           >

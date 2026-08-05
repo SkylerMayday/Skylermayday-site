@@ -26,12 +26,14 @@ export default function InstagramEmbeds() {
 
   return (
     <div>
-      <h2 className="mb-4 text-lg font-semibold">Instagram</h2>
+      <h2 className="mb-4 text-balance text-[28px] leading-[1.15] font-bold tracking-[-0.02em] sm:text-[36px]">
+        Instagram
+      </h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {embeds.map((embed) => (
           <blockquote
             key={embed.id}
-            className="instagram-media rounded-lg border border-neutral-200 p-2 dark:border-neutral-800"
+            className="instagram-media rounded-lg border border-border p-2"
             data-instgrm-permalink={embed.url}
             data-instgrm-version="14"
           >

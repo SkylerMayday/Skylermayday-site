@@ -69,7 +69,12 @@ export default function BinderBookcase({
 
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold">{heading}</h2>
+      {/* design-brief.md §4.4's H2 row — this heading sits OUTSIDE the
+          `.binder-cabinet` element the Playwright visual baselines screenshot,
+          so retokening it does not churn a baseline. */}
+      <h2 className="text-balance text-[28px] leading-[1.15] font-bold tracking-[-0.02em] sm:text-[36px]">
+        {heading}
+      </h2>
       <div
         className={`binder-cabinet relative bg-neutral-50 p-4 dark:bg-neutral-900 sm:p-6${
           isEmpty ? " binder-cabinet-empty" : ""
