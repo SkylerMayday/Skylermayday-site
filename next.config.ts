@@ -7,6 +7,16 @@ import type { NextConfig } from "next";
 // 'unsafe-inline' is used (not a nonce) because Next.js App Router injects inline
 // hydration scripts and the TikTok/Instagram embed scripts inject their own inline
 // scripts we can't nonce. See .pipeline/specs.md §4 for the full rationale.
+//
+// 'unsafe-eval' is added to script-src in development ONLY (gaps.md,
+// 2026-08-06). next dev wraps webpack modules in eval() for Fast Refresh —
+// with no 'unsafe-eval', the browser blocks that eval and every client
+// component (nav toggle, filters, theme toggle, ...) is dead under `npm run
+// dev`. `next build`/`next start` never use eval, so this never reaches
+// production regardless of how NODE_ENV is set at request time — Next.js
+// itself sets NODE_ENV=production for any built/started server, and this
+// file only runs at build/config-load time, not per-request.
+const isDev = process.env.NODE_ENV !== "production";
 const cspDirectives = [
   "default-src 'self'",
   // Next.js inline hydration + TikTok/Instagram embed scripts. TikTok's
@@ -15,7 +25,7 @@ const cspDirectives = [
   // since the subdomain varies. Verified via live console CSP violation
   // during Coder-stage testing (2026-07-09); not in the original Planner
   // enumeration (§3/§5 of specs.md).
-  "script-src 'self' 'unsafe-inline' https://www.tiktok.com https://www.instagram.com https://*.ttwstatic.com",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.tiktok.com https://www.instagram.com https://*.ttwstatic.com`,
   // Tailwind v4 + Next inline styles, plus TikTok embed's stylesheet
   // (chain-loaded from the same ttwstatic.com host as its script — see
   // script-src comment above). Verified via live console CSP violation.
