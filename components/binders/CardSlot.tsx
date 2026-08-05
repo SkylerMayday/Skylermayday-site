@@ -32,7 +32,7 @@ export default function CardSlot({ slot }: CardSlotProps) {
         className="group relative flex aspect-[5/7] flex-col items-center justify-center overflow-hidden rounded border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-900"
         title={slot.slotName}
       >
-        <div className="flex flex-col items-center justify-center gap-1 p-2 text-center text-neutral-400 dark:text-neutral-600">
+        <div className="flex flex-col items-center justify-center gap-1 p-2 text-center text-fg-muted">
           <span className="text-xs font-semibold">#{slot.dexNumber}</span>
           <span className="text-[10px] leading-tight">{slot.slotName}</span>
         </div>

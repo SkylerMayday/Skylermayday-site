@@ -40,14 +40,9 @@ const _schemaMatchesInterface: _SchemaMatchesInterface = true;
 void _schemaMatchesInterface;
 
 /**
- * Reads and validates `data/shop-listings.json` at build time.
- *
- * The shop page (app/shop/page.tsx) is statically rendered (SSG — no
- * `revalidate`/`dynamic` export), so this runs during `next build`, never
- * per-request. A validation failure therefore fails the build loudly and
- * early with a message pointing at the offending listing — the intended
- * hardening behavior (Item 1). This replaces the previous silent-drop
- * behavior, which could render a shop with cards missing and no signal.
+ * Validates arbitrary data against the shop listing schema, throwing with a
+ * detailed per-listing message on failure. Pure — no file I/O, safe to unit
+ * test directly with fixture data (see shop.test.ts).
  */
 export function parseShopListings(data: unknown): ShopListing[] {
   const result = shopListingsSchema.safeParse(data);
@@ -83,6 +78,16 @@ export function parseShopListings(data: unknown): ShopListing[] {
   return result.data;
 }
 
+/**
+ * Reads and validates `data/shop-listings.json` at build time.
+ *
+ * The shop page (app/shop/page.tsx) is statically rendered (SSG — no
+ * `revalidate`/`dynamic` export), so this runs during `next build`, never
+ * per-request. A validation failure therefore fails the build loudly and
+ * early with a message pointing at the offending listing — the intended
+ * hardening behavior (Item 1). This replaces the previous silent-drop
+ * behavior, which could render a shop with cards missing and no signal.
+ */
 export function loadShopListings(): ShopListing[] {
   return parseShopListings(rawListings);
 }

@@ -310,6 +310,19 @@ describe("partitionBindersByShelf", () => {
     expect(shelf2).toEqual([personalA, personalB]);
   });
 
+  it("preserves input order even when it contradicts SHELF_1_BINDER_IDS's constant order", () => {
+    // The above test's input happens to list pokedex before cardHistory,
+    // which coincides with SHELF_1_BINDER_IDS's own order — so it can't
+    // distinguish "preserves input order" (what the function does: a plain
+    // loop, no sort) from "sorts by constant order" (a different,
+    // unimplemented behavior). This case flips the input order to
+    // discriminate the two.
+    const cardHistory = binder("cardHistory", []);
+    const pokedex = binder("pokedex", []);
+    const { shelf1 } = partitionBindersByShelf([cardHistory, pokedex]);
+    expect(shelf1).toEqual([cardHistory, pokedex]);
+  });
+
   it("returns empty groups for empty input", () => {
     expect(partitionBindersByShelf([])).toEqual({ shelf1: [], shelf2: [] });
   });
