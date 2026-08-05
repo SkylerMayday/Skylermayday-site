@@ -4,18 +4,26 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import type { BinderSlot } from "@/lib/binders";
 import CardZoomModal from "./CardZoomModal";
+import Placeholder from "@/components/ui/Placeholder";
 
 interface CardSlotProps {
   slot: BinderSlot;
 }
 
-/** Filled (cardId && imageUrl) -> card image, focusable/clickable to open a zoom lightbox. Empty -> greyed placeholder tile, inert. */
+/**
+ * Empty (no cardId/imageUrl) -> greyed placeholder tile, inert.
+ * Filled + image loads -> card image, focusable/clickable to open a zoom lightbox.
+ * Filled + image 404s -> Placeholder icon in place of the image, but still
+ * focusable/clickable with the lock overlay intact (gaps.md 2026-07-16: a
+ * broken thumbnail must not silently demote a locked, real card down to an
+ * inert empty-looking tile — that loses both the lock signal and the click
+ * affordance, not just the picture).
+ */
 export default function CardSlot({ slot }: CardSlotProps) {
   const [imageError, setImageError] = useState(false);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const isFilled = Boolean(slot.cardId && slot.imageUrl);
-  const showImage = isFilled && !imageError;
 
   // Restores focus to the trigger button that opened the modal. Runs
   // synchronously in the same tick as the close event, so focus lands on
@@ -26,7 +34,7 @@ export default function CardSlot({ slot }: CardSlotProps) {
     triggerRef.current?.focus();
   }
 
-  if (!showImage) {
+  if (!isFilled) {
     return (
       <div
         className="group relative flex aspect-[5/7] flex-col items-center justify-center overflow-hidden rounded border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-900"
@@ -56,14 +64,18 @@ export default function CardSlot({ slot }: CardSlotProps) {
         // 4.26:1 against the tile, 4.34/4.19:1 against light/dark --bg.
         className="group relative flex aspect-[5/7] w-full flex-col items-center justify-center overflow-hidden rounded border border-neutral-200 bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand dark:border-neutral-800 dark:bg-neutral-900"
       >
-        <Image
-          src={slot.imageUrl as string}
-          alt={slot.slotName}
-          fill
-          sizes="(max-width: 768px) 20vw, 10vw"
-          className="object-contain"
-          onError={() => setImageError(true)}
-        />
+        {imageError ? (
+          <Placeholder className="absolute inset-0" label={`${slot.slotName} image unavailable`} />
+        ) : (
+          <Image
+            src={slot.imageUrl as string}
+            alt={slot.slotName}
+            fill
+            sizes="(max-width: 768px) 20vw, 10vw"
+            className="object-contain"
+            onError={() => setImageError(true)}
+          />
+        )}
 
         {slot.isLocked && (
           <span
