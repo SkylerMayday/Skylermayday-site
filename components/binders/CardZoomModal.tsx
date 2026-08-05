@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import Badge from "@/components/ui/Badge";
 
-interface CardZoomModalProps {
+export interface CardZoomModalProps {
   imageUrl: string; // non-null; CardSlot only mounts this when the slot is filled
   slotName: string; // used for the accessible label + image alt + error fallback text
   language: string; // slot.language; badge shown only when !== "EN"

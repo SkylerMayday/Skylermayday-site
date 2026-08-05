@@ -10,6 +10,19 @@ cp .env.local.example .env.local   # fill in real values, see table below
 npm run dev
 ```
 
+## Testing
+
+```bash
+npm run test            # unit (node) + component (jsdom) suites, one command
+npm run test:visual     # Playwright visual regression (needs test:visual:install once)
+```
+
+`npm run test` runs two Vitest projects from one config: `unit` (`**/*.test.ts`,
+node environment) and `components` (`**/*.test.tsx`, jsdom + React Testing
+Library). See [`docs/component-testing.md`](docs/component-testing.md) for how
+to write a component test, what `vitest.setup.ts` provides, and why two of the
+test devDependencies are version-pinned.
+
 ## Environment variables
 
 Set these in Vercel Project Settings → Environment Variables (Production +
