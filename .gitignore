@@ -41,3 +41,7 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Internal planning file. Contains security-assessment notes and is not for
+# publication in a public repo. Keep local; do not force-add. See CLAUDE.md.
+gaps.md
