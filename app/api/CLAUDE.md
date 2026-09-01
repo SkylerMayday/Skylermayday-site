@@ -22,4 +22,4 @@ Next.js route handlers. **Five routes, and every one of them follows the same th
 
 ## Reminder
 
-This repo is **public**. Nothing here should contain a secret value, an internal hostname, or commentary on unpatched vulnerabilities.
+This repo is **public**. Nothing here should contain a secret value, an internal hostname, or internal security-assessment commentary. Those belong in the gitignored `gaps.md`.
